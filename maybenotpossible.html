@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<title>MaybeNotPossible</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64'%3E%3Crect width='64' height='64' fill='red'/%3E%3C/svg%3E">
+<style>
+
+*{
+    font-family:Arial, Helvetica, sans-serif;
+}
+html, body {
+    margin-left: 16px;
+    height: 100%;
+    overflow: hidden; /* page cannot scroll */
+    background-color: #b3e3ff;
+}
+
+#gamey {
+    height: 100%;
+    overflow-y: auto; /* internal scroll */
+    background-color: #b3e3ff;
+}
+
+#header {
+    position: sticky;
+    top: 0;
+    background: #b3e3ff;
+    z-index: 10;
+}
+canvas{
+    border-radius: 24px;
+    background-color: azure;
+    border: 3px outset black;
+    border-radius: 24px;
+}
+</style>
+
+<div id="gamey">
+    <h1 id="header" style="font-family:Arial, Helvetica, sans-serif;">MaybeNotPossible</h1>
+    <canvas id="game0" width="800" height="450"></canvas>
+    <p id="lev1"></p>
+</div>
+
+<script>
+let currentCanvasIndex = 0;
+const difficulties = ["so easy","easy", "easy-ish", "medium", "a bit hard", "hard-ish", "hard", "so hard", "IMPOSSIBLE!!!!!"]
+
+const lev1 = document.getElementById("lev1");
+lev1.textContent = "level 1 difficulty: " + (difficulties[Math.floor(Math.random() * difficulties.length)]);;
+function createLevel(index) {
+    const canvas = document.getElementById("game" + index);
+    const ctx = canvas.getContext("2d");
+
+    const platforms = [];
+    for (let i = 0; i < 5; i++) {
+        platforms.push({
+            x: Math.random() * 700,
+            y: 100 + Math.random() * 300,
+            w: 100 + Math.random() * 150,
+            h: 20
+        });
+    }
+
+    const goal = {
+        x: Math.random() * 760,
+        y: Math.random() * 410,
+        w: 20,
+        h: 20
+    };
+
+    const player = {
+        x: 50,
+        y: 50,
+        w: 40,
+        h: 40,
+        vx: 0,
+        vy: 0,
+        onGround: false
+    };
+
+    const gravity = 0.5;
+    const ground = 430;
+
+    const keys = {};
+    document.addEventListener("keydown", e => {
+        if (index !== currentCanvasIndex) return;
+        keys[e.code] = true;
+    });
+    document.addEventListener("keyup", e => {
+        if (index !== currentCanvasIndex) return;
+        keys[e.code] = false;
+    });
+
+    function update() {
+        if (index !== currentCanvasIndex) return;
+
+        if (keys["ArrowLeft"]) player.vx = -3;
+        else if (keys["ArrowRight"]) player.vx = 3;
+        else player.vx = 0;
+
+        if (keys["Space"] && player.onGround) {
+            player.vy = -12;
+            player.onGround = false;
+        }
+
+        player.x += player.vx;
+        player.vy += gravity;
+
+        let nextY = player.y + player.vy;
+        resolveVertical(nextY);
+
+        if (player.x < goal.x + goal.w &&
+            player.x + player.w > goal.x &&
+            player.y < goal.y + goal.h &&
+            player.y + player.h > goal.y) {
+
+            makeNewCanvas();
+        }
+    }
+
+    function resolveVertical(nextY) {
+        player.onGround = false;
+
+        if (nextY + player.h > ground) {
+            player.y = ground - player.h;
+            player.vy = 0;
+            player.onGround = true;
+            return;
+        }
+
+        for (let p of platforms) {
+            const overlapX =
+                player.x < p.x + p.w &&
+                player.x + player.w > p.x;
+
+            if (player.vy > 0 &&
+                overlapX &&
+                player.y + player.h <= p.y &&
+                nextY + player.h >= p.y) {
+
+                player.y = p.y - player.h;
+                player.vy = 0;
+                player.onGround = true;
+                return;
+            }
+
+            if (player.vy < 0 &&
+                overlapX &&
+                player.y >= p.y + p.h &&
+                nextY <= p.y + p.h) {
+
+                player.y = p.y + p.h;
+                player.vy = 0;
+                return;
+            }
+        }
+
+        player.y = nextY;
+    }
+
+    function draw() {
+        if (index !== currentCanvasIndex) return;
+
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        ctx.fillStyle = "black";
+        for (let p of platforms) ctx.fillRect(p.x, p.y, p.w, p.h);
+
+        ctx.fillStyle = (Math.random() < 0.1) ? "blue" : "green";
+        ctx.fillRect(goal.x, goal.y, goal.w, goal.h);
+
+        ctx.fillStyle = "red";
+        ctx.fillRect(player.x, player.y, player.w, player.h);
+    }
+
+    function loop() {
+        update();
+        draw();
+        requestAnimationFrame(loop);
+    }
+
+    loop();
+}
+
+function makeNewCanvas() {
+    currentCanvasIndex++;
+
+    const newCanvas = document.createElement("canvas");
+    newCanvas.id = "game" + currentCanvasIndex;
+    newCanvas.width = 800;
+    newCanvas.height = 450;
+
+    const newLvMkr = document.createElement("p");
+    newLvMkr.textContent = " level " + (currentCanvasIndex + 1) + "difficulty: " + (difficulties[Math.floor(Math.random() * difficulties.length)]);
+
+    document.getElementById("gamey").appendChild(newCanvas);
+    document.getElementById("gamey").appendChild(newLvMkr);
+
+    createLevel(currentCanvasIndex);
+}
+
+createLevel(0);
+</script>
+

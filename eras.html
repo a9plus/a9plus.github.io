@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Web Evolution Museum</title>
+
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
+<style>
+* { box-sizing: border-box; }
+
+body {
+    margin: 0;
+    transition: .35s ease;
+}
+
+#tabs {
+    position: sticky;
+    top: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    padding: 8px;
+    background: #111;
+    z-index: 999;
+}
+
+#tabs button {
+    border: none;
+    padding: 8px 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    background: #333;
+    color: white;
+}
+
+#content {
+    min-height: 100vh;
+    padding: 20px;
+}
+
+/* ================= 1993 ================= */
+.s1993 { background: #c0c0c0; font-family: serif; }
+.s1993 .page {
+    width: 780px;
+    margin: auto;
+    background: white;
+    border: 3px ridge gray;
+    padding: 20px;
+}
+
+/* ================= 1997 ================= */
+.s1997 { background: url("https://dummyimage.com/20x20/ff00ff/000&text=*"); }
+.s1997 .page {
+    width: 780px;
+    margin: auto;
+    background: white;
+    border: 6px double hotpink;
+    padding: 20px;
+}
+
+/* ================= 2001 ================= */
+.s2001 { background: #001a33; color: white; }
+.s2001 .header { background:#003366; padding:20px; font-size:28px; }
+.s2001 .sidebar { float:left; width:200px; background:#002244; padding:10px; }
+.s2001 .main { margin-left:220px; }
+
+/* ================= 2004 ================= */
+.s2004 { background: linear-gradient(#9ad1ff, #fff); }
+.s2004 .card { width:760px; margin:auto; background:white; padding:15px; margin-bottom:10px; }
+
+/* ================= 2007 ================= */
+.s2007 { background: linear-gradient(#cfeaff,#fff); }
+.s2007 .glass { width:760px; margin:auto; background:rgba(255,255,255,.5); backdrop-filter:blur(10px); padding:20px; }
+
+/* ================= 2010 ================= */
+.s2010 { background:#e9e9e9; }
+.s2010 .blog { width:760px; margin:auto; background:white; padding:20px; border-left:4px solid #999; }
+
+/* ================= 2013 ================= */
+.s2013 { background:#f7f7f7; }
+.s2013 .card { width:760px; margin:auto; background:white; padding:20px; margin-bottom:10px; box-shadow:0 2px 8px rgba(0,0,0,.2); }
+
+/* ================= 2016 ================= */
+.s2016 { background:#fafafa; }
+.s2016 .dashboard {
+    width:760px;
+    margin:auto;
+}
+.s2016 .panel {
+    background:white;
+    margin:10px 0;
+    padding:15px;
+    box-shadow:0 2px 8px rgba(0,0,0,.1);
+}
+
+/* ================= 2018 ================= */
+.s2018 { background:white; }
+.s2018 .landing { text-align:center; font-size:34px; }
+.s2018 .box { width:760px; margin:auto; background:white; padding:15px; }
+
+/* ================= 2020 ================= */
+.s2020 { background:#f1f3f5; }
+.s2020 .feed { width:700px; margin:auto; }
+.s2020 .post { background:white; padding:15px; margin:10px 0; border-radius:12px; }
+
+/* ================= 2022 ================= */
+.s2022 { background:#0d0f14; color:white; }
+.s2022 .feed { width:700px; margin:auto; }
+.s2022 .post { background:#1b1f2a; padding:15px; margin:10px 0; border-radius:12px; }
+
+/* ================= 2024 ================= */
+.s2024 { background:#0b0d10; color:white; }
+.s2024 .layout {
+    width:760px;
+    margin:auto;
+    display:grid;
+    grid-template-columns:1fr 300px;
+    gap:15px;
+}
+.s2024 .card {
+    background:#1c2028;
+    padding:15px;
+    border-radius:12px;
+}
+.s2024 .sidebar {
+    background:#12151c;
+    padding:15px;
+    border-radius:12px;
+}
+
+/* ================= 2026 AI SLOP ================= */
+.s2026 {
+    background:#06070b;
+    color:white;
+}
+.s2026 .topbar {
+    position:sticky;
+    top:0;
+    background:rgba(20,20,30,.9);
+    display:flex;
+    justify-content:space-between;
+    padding:10px;
+    font-size:12px;
+}
+.s2026 .live { color:#00ff9d; animation:blink 1s infinite; }
+@keyframes blink { 50% { opacity:.3; } }
+
+.s2026 .grid {
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:15px;
+    padding:20px;
+}
+.s2026 .panel {
+    background:rgba(255,255,255,.04);
+    padding:15px;
+    border-radius:16px;
+    backdrop-filter:blur(10px);
+}
+.s2026 .ai {
+    background:linear-gradient(90deg,rgba(255,0,200,.06),rgba(0,255,255,.06));
+    padding:10px;
+    margin-top:10px;
+    border:1px dashed rgba(255,255,255,.2);
+}
+
+/* ================= 2026 INDIE ================= */
+.s2026indie {
+    background:#fdfaf5;
+    color:#111;
+    font-family:Georgia,serif;
+}
+.s2026indie .page {
+    width:800px;
+    margin:auto;
+}
+.s2026indie .box {
+    border:1px solid #aaa;
+    padding:15px;
+    margin-top:10px;
+    background:white;
+}
+
+</style>
+</head>
+
+<body class="s1993">
+
+<div id="tabs">
+<button onclick="setEra('s1993')">1993</button>
+<button onclick="setEra('s1997')">1997</button>
+<button onclick="setEra('s2001')">2001</button>
+<button onclick="setEra('s2004')">2004</button>
+<button onclick="setEra('s2007')">2007</button>
+<button onclick="setEra('s2010')">2010</button>
+<button onclick="setEra('s2013')">2013</button>
+<button onclick="setEra('s2016')">2016</button>
+<button onclick="setEra('s2018')">2018</button>
+<button onclick="setEra('s2020')">2020</button>
+<button onclick="setEra('s2022')">2022</button>
+<button onclick="setEra('s2024')">2024</button>
+<button onclick="setEra('s2026')">2026 AI</button>
+<button onclick="setEra('s2026indie')">2026 Indie</button>
+</div>
+
+<div id="content"></div>
+
+<script>
+
+const eras = {
+
+/* 1993 */
+s1993: `
+<div class="page">
+<h1>A9 Homepage</h1>
+<p>I like computers.</p>
+<p>Turtles sometimes appear here.</p>
+
+<hr>
+
+<img src="https://dummyimage.com/88x31/000/fff&text=Netscape">
+<img src="https://dummyimage.com/88x31/222/fff&text=HTML">
+</div>
+`,
+
+/* 1997 */
+s1997: `
+<div class="page">
+<h1>GeoCity Site</h1>
+<p>UNDER CONSTRUCTION</p>
+<p>Visitor count: 0001832</p>
+<img src="https://dummyimage.com/120x90/ff00ff/000&text=GIF">
+</div>
+`,
+
+/* 2001 */
+s2001: `
+<div class="header">A9 Portal</div>
+<div class="sidebar">Forums<br>Chat<br>News</div>
+<div class="main">
+<p>Download our toolbar!!!</p>
+<p>Turtle thread trending</p>
+</div>
+`,
+
+/* 2004 */
+s2004: `
+<div class="card">
+<h2>Web 2.0</h2>
+<p>Tagging, sharing, RSS.</p>
+</div>
+<div class="card">
+<p>A9 uploaded a turtle photo.</p>
+</div>
+`,
+
+/* 2007 */
+s2007: `
+<div class="glass">
+<h1>Aero Web</h1>
+<button>Upload</button>
+<button>Share</button>
+</div>
+`,
+
+/* 2010 */
+s2010: `
+<div class="blog">
+<h2>Blog</h2>
+<p>Updated my site again.</p>
+</div>
+`,
+
+/* 2013 */
+s2013: `
+<div class="card">
+<h2>Flat UI</h2>
+<p>Minimal everywhere.</p>
+</div>
+`,
+
+/* 2016 */
+s2016: `
+<div class="dashboard">
+
+<div class="panel">
+<h2>Dashboard</h2>
+<p>Welcome back, A9</p>
+<i class="material-icons">menu</i>
+<i class="material-icons">notifications</i>
+</div>
+
+<div class="panel">
+<h3>Activity</h3>
+<p>Sync complete</p>
+<p>Backup done</p>
+<p>1 device offline</p>
+</div>
+
+<div class="panel">
+<h3>Recommendations</h3>
+<p>Material UI Kit</p>
+<p>Design Trends 2016</p>
+</div>
+
+</div>
+`,
+
+/* 2018 */
+s2018: `
+<div class="landing">Build The Future</div>
+
+<div class="box">
+<h3>Features</h3>
+<ul>
+<li>AI insights</li>
+<li>Cloud sync</li>
+<li>Scalable infrastructure</li>
+</ul>
+</div>
+
+<div class="box">
+<h3>Stats</h3>
+<p>Users: 14,230</p>
+<p>Uptime: 99.99%</p>
+</div>
+`,
+
+/* 2020 */
+s2020: `
+<div class="feed">
+<div class="post"><b>A9</b>: hello world</div>
+<div class="post">Sponsored content</div>
+<div class="post">Recommended for you</div>
+</div>
+`,
+
+/* 2022 */
+s2022: `
+<div class="feed">
+<div class="post">Algorithmic feed ranking</div>
+<div class="post">Trending now</div>
+<div class="post">Suggested post</div>
+</div>
+`,
+
+/* 2024 */
+s2024: `
+<div class="layout">
+
+<div class="card">
+<h2>AI Assistant</h2>
+<p>Summary generated instantly</p>
+<p>Draft created in 0.5s</p>
+<p>Optimizing output...</p>
+</div>
+
+<div class="sidebar">
+<h3>Insights</h3>
+<p>Engagement +32%</p>
+<p>Retention +12%</p>
+<p>Prediction model active</p>
+</div>
+
+</div>
+`,
+
+/* 2026 AI SLOP */
+s2026: `
+<div class="topbar">
+<div class="live">● LIVE AI SYSTEM ACTIVE</div>
+<div>agents: 64 | hallucination: HIGH</div>
+</div>
+
+<div class="grid">
+
+<div class="panel">
+<h2>CONTROL</h2>
+<div class="ai">rewriting UI continuously</div>
+<div class="ai">predicting user intent before input</div>
+<div class="ai">self optimizing interface loop active</div>
+</div>
+
+<div class="panel">
+<h2>STREAM</h2>
+<div class="ai">AI: "we generated 23 versions of this page"</div>
+<div class="ai">AI: "you already liked this content"</div>
+<div class="ai">AI: "confidence model unstable"</div>
+</div>
+
+</div>
+`,
+
+/* 2026 INDIE */
+s2026indie: `
+<div class="page">
+
+<h1>A9 Journal</h1>
+
+<div class="box">
+<p>no algorithms here anymore</p>
+<p>just pages</p>
+<p>sometimes turtles show up in old posts</p>
+</div>
+
+<div class="box">
+<img src="https://dummyimage.com/88x31/000/fff&text=HTML">
+<img src="https://dummyimage.com/88x31/fff/000&text=INDIE">
+<img src="https://dummyimage.com/88x31/0ff/000&text=NO+AI">
+</div>
+
+<div class="box">
+<p>the web feels human again</p>
+</div>
+
+</div>
+`
+
+};
+
+function setEra(e){
+    document.body.className = e;
+    content.innerHTML = eras[e];
+}
+
+setEra("s1993");
+
+</script>
+
+</body>
+</html>

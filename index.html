@@ -1,0 +1,1003 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome To A9's Corner!</title>
+    <link href="/style.css" rel="stylesheet" type="text/css" media="all">
+    <link rel="icon" type="image/png" href="/a9logo.png"><script src="https://iframe.chat/scripts/main.min.js"></script>
+    <style>
+  @keyframes splashPulse {
+  0% {
+    transform: rotate(15deg) scale(1);
+  }
+  50% {
+    transform: rotate(15deg) scale(1.15);
+  }
+  100% {
+    transform: rotate(15deg) scale(1);
+  }
+} .content {background-color: #38b6ff; display: flex; flex-direction: row; border-radius: 24px; height: 400px;flex-shrink: 0; padding: 8px; gap:8px;} .content iframe {border-radius: 16px;width:50%;}</style>
+  </head>
+
+  <body>
+    <div id="splash"
+     style="position:fixed;top:125px;right:25px;transform-origin:top right;font:700 28px Arial,sans-serif;color:#ffff55;text-shadow:2px 2px 0 #000,-2px 2px 0 #000,2px -2px 0 #000,-2px -2px 0 #000;z-index:9999;pointer-events:none;user-select:none;white-space:nowrap;animation:splashPulse 0.8s ease-in-out infinite;">
+</div>
+  <div id="focusOverlay" style="
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.85);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  color: white;
+  font-family: monospace;
+  font-size: 24px;
+  z-index: 9999;
+  text-align: center;
+">
+  <div>look at the title</div>
+  <div class="kf" style="opacity:0.7; font-size:16px; margin-top:10px;">
+    press P to exit
+    press space when red touches green to win
+  </div>
+</div>
+  <script>
+  if (navigator.userAgent === "Screenjesus") {
+    document.body.innerHTML = '<img src="a9logo.png" style="width:100vw;height:100vh;object-fit:cover;">';
+  }
+</script>
+<script>NekoType="neon"</script>
+<h1 id=nl><script src="https://webneko.net/n20171213.js"></script><a 
+href="https://webneko.net">Neko</a></h1>
+    <!-- Top Bar -->
+<div id="topbar"> 
+  <p>
+    Welcome to <img src="a9corner.png" style="border-radius: 6px;"> 
+    <a href="/index.html">Home</a> | 
+    <a href="/projects.html">Apps</a> | 
+    <a href="/links.html">Links</a> | 
+    <a href="/peelwheel.html">The Peel Wheel</a> | <a href="forum.html">Forum</a>
+  </p>
+
+  <span id="swatchClock" style="display: none !important;">@000</span> 
+
+  <span id="myCustomClock" style="color: #38b6ff !important; font-size: 16px !important; text-decoration: none !important; margin-left: auto !important; padding-right: 12px !important;">@000</span>
+
+  <script defer src="https://melonking.net/scripts/swatchTime.js"></script>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", function() {
+      var targetNode = document.getElementById('swatchClock');
+      var customNode = document.getElementById('myCustomClock');
+      var observer = new MutationObserver(function() {
+        customNode.textContent = targetNode.textContent;
+      });
+      observer.observe(targetNode, { childList: true, characterData: true, subtree: true });
+    });
+  </script>
+</div>
+
+
+
+
+<!-- The outer wrapper that hides the overflow badges -->
+<br><br>
+<div id="marquee" data-gravity-only="true" style="width: 100%; overflow: hidden; white-space: nowrap; background: #000000; padding: 5px 0;">
+  
+  <!-- The moving track. It loops seamlessly by running the animation below -->
+  <div style="display: inline-block; animation: scrollBadges 25s linear infinite;">
+    
+    <!-- FIRST SET OF BADGES -->
+    <a href="mazeout" style="display: inline-block; vertical-align: middle; margin-right: 10px;color:#feff38;">Look at all my buttons on this maze!</a>
+    <p style="display: inline-block; vertical-align: middle; margin-right: 10px;color: white;">or just watch my custom marquee</p>
+    <a href="https://a9scorner.neocities.org" title="Visit a9's corner!" style="display: inline-block; vertical-align: middle; margin-right: 10px;"><img src="https://a9scorner.neocities.org/button.gif" alt="Come Chat With Us!" width="88" height="31" style="display: block;"></a>
+    <a href="https://onio.club" title="Visit Onio Café" style="display: inline-block; vertical-align: middle; margin-right: 10px;"><img src="https://onio.club/chatbt.gif" alt="Come Chat With Us!" width="88" height="31" style="display: block;"></a>
+    <a href="https://ribo.zone" title="Visit Ribozone" style="display: inline-block; vertical-align: middle; margin-right: 10px;"><img src="ribozone.gif" alt="Visit Ribozone" width="88" height="31" style="display: block;"></a>
+    <a href="https://gleefulpebble.neocities.org" style="display: inline-block; vertical-align: middle; margin-right: 10px;"><img src="/gleefulpebble.gif" width="88" height="31" style="display: block;"></a>
+    <a href="https://purplestarship.neocities.org/" style="display: inline-block; vertical-align: middle; margin-right: 10px;"><img src="https://purplestarship.neocities.org/banners/PSbanner.gif" width="88" height="31" style="display: block;"></a>
+    <a href="//underwhite.neocities.org" style="display: inline-block; vertical-align: middle; margin-right: 10px;"><img src="https://underwhite.neocities.org/images/link/button.gif" title="''Taken from the links page, classic.''" width="88" height="31" style="display: block;"></a>
+    <a href="https://tabf5.com/" target="_blank" style="display: inline-block; vertical-align: middle; margin-right: 10px;"><img src="https://tabf5.com/img/button.gif" alt="TabF5.com" width="88" height="31" style="display: block; image-rendering: pixelated;"></a>
+    <a href="https://kuroi.com.br/" target="_blank" style="display: inline-block; vertical-align: middle; margin-right: 10px;"><img src="https://kuroi.com.br/img/button1.png" alt="kuroiOS" width="88" height="31" style="display: block; image-rendering: pixelated;"></a>
+    <a href="https://powerduck.neocities.org" style="display: inline-block; vertical-align: middle; margin-right: 10px;"><img src="https://powerduck.neocities.org/images/pdbadge-88x31.png" alt="powerduck" width="88" height="31" style="display: block;"></a>
+    <a href="https://dabu18.neocities.org" style="display: inline-block; vertical-align: middle; margin-right: 10px;"><img src="https://dabu18.neocities.org/images/icons/dabu18_button.png" alt="dabu18" width="88" height="31" style="display: block;"></a>
+    <a href="https://yelorange.neocities.org/" target="_blank" style="display: inline-block; vertical-align: middle; margin-right: 10px;"><img src="https://yelorange.neocities.org/button.png" width="88" height="31" style="display: block; image-rendering: pixelated;"></a>
+    <a href="https://gl1tch-k1d.neocities.org/" target="_top" style="display: inline-block; vertical-align: middle; margin-right: 10px;"><img src="https://gl1tch-k1d.neocities.org/glitch.gif" title="Gl1tch-k1d's Website" alt="Come to Gl1tch's website!" width="88" height="31" style="display: block;"></a>
+    <a href="https://hsquare.neocities.org/" target="_blank" style="display: inline-block; vertical-align: middle; margin-right: 10px;"><img src="hsquare_88x31.gif" title="hsquare" alt="hsquare!" width="88" height="31" style="display: block;"></a>
+    <a href="https://the-lemur.neocities.org" title="Visit my Corner of the internet!" style="display: inline-block; vertical-align: middle; margin-right: 10px;"><img src="https://the-lemur.neocities.org/lemurbutton.gif" alt="My corner of the internet!" width="88" height="31" style="display: block;"></a>
+    <a title="c-nder" href="https://c-nder.neocities.org/" target="_blank" style="display: inline-block; vertical-align: middle; margin-right: 10px;"><img src="https://c-nder.neocities.org/buttons/c-nder-button.gif" width="88" height="31" style="display: block;"></a>
+    <a href="http://www.catb.org/hacker-emblem/" style="display: inline-block; vertical-align: middle; margin-right: 10px;"><img src="glider.png" alt="hacker emblem" style="height: 31px; width: 31px; display: block; image-rendering: pixelated;" /></a>
+    <a title="neocraft" href="https://xobyte.org/neocraft" target="_blank" style="display: inline-block; vertical-align: middle; margin-right: 10px;"><img src="NeoCraft.gif" width="88" height="31" style="display: block;"></a>
+    <a title="wireplay" href="wireplay" target="_blank" style="display: inline-block; vertical-align: middle; margin-right: 10px;"><img src="wireplay.gif" width="88" height="31" style="display: block;"></a>
+    <a href="https://www.pseustuff.com" style="display: inline-block; vertical-align: middle; margin-right: 10px;"><img src="https://pseustuff.com/gallery/PseuStuff.button.1.gif?ts=1773838952" alt="PseuStuff" width="88" height="31" style="display: block;"></a>
+
+<a href="https://bind.neocities.org/" style="display: inline-block; vertical-align: middle; margin-right: 10px;" target="_blank"><img src="https://bind.neocities.org/images/index/bind3.gif"></a>
+  <a href="https://kenvexity.org" title="Visit the world of Kenvexity!">
+    <img style="display: inline-block; vertical-align: middle; margin-right: 10px;" src="https://kenvexity.org/graphic.png" alt="The world of Linux.." width="88" height="31">
+  </a>
+<p style="display: inline-block; vertical-align: middle; margin-right: 10px;color:white;">catching the next train...</p>
+</div>
+</div>
+<style>
+@keyframes scrollBadges {0% { transform: translateX(0); }100% { transform: translateX(-50%); }}
+</style>
+
+    <!-- Main Content Box -->
+    <div style="width: 90%;
+  height: 80vh;
+  margin: 5vh 5%;
+  padding: 1rem;
+  background-color: #feff38;
+  background: url('https://dummyimage.com/40x40/feff38/f4f512&text=*');
+  border-radius: 16px;
+  box-sizing: border-box;
+  overflow-wrap: break-word;
+  display: flex;
+  overflow: auto;
+  flex-direction: column;
+  justify-content: flex-start;">
+      <button onclick="playFire();">Aggrigate the fire 🔥🔥🔥🔥🔥🔥🔥</button>
+  <a href="webring.html">join my webring</a>
+  <!-- The image element linked to my webring coordinate map -->
+        <img src="https://a9scorner.neocities.org/a9RING.png" usemap="#webring-map" width="310" height="90" alt="Webring Navigation" style="display: block; border: none;">
+
+        <!-- The map element containing the scaled button regions -->
+        <map name="webring-map">
+            <!-- "Next" Button -->
+            <area shape="rect" coords="117,9,302,42" href="https://a9scorner.neocities.org/webring?action=next&from=a9pl" alt="Next Site">
+            
+            <!-- "Prev" Button -->
+            <area shape="rect" coords="117,51,302,83" href="https://a9scorner.neocities.org/webring?action=back&from=a9pl" alt="Previous Site">
+            
+            <!-- "RND" Button -->
+            <area shape="rect" coords="48,56,97,82" href="https://a9scorner.neocities.org/webring?action=rnd&from=a9pl" alt="Random Site">
+        </map>
+  <h3>I am proud to say, I have Yelorange's</h3>
+  <a href="https://yelorange.neocities.org/coolpeople" target="_blank"><img src="https://yelorange.neocities.org/certificateofcoolness.png" style="image-rendering: pixelated"></a>
+  <a href="https://a9scorner.neocities.org/rss.xml"><img style="width:3vh;height:3vh;" src="rss.png"> My RSS feed!</a>
+  <p>netchat:</p>
+ <div class="content"><!-- chattable embed by kuroi --><iframe src="https://iframe.chat/embed?chat=67676767" id="chattable" frameborder="none"></iframe><div style="display:flex; flex-direction:column;"><ul id="online-users"></ul></div></div><script>chattable.commands = { "meme": function() {             var memes = ["This is fine. 🔥", "Modern problems require modern solutions. 💡", "Understandable, have a great day. ✌️", "I active my trap card! 🃏", "Plot twist! 🔄", "Task failed successfully. ❌", "Is this real life? 👁️", "Delete this. 🗑️", "Mom, pick me up, I'm scared. 🏎️", "I'm about to ruin this man's whole career. 💀", "Don't give me hope. 🥺", "X to Doubt. ⌨️", "Reality is often disappointing. 🔮", "Perfectly balanced, as all things should be. ⚖️", "I am inside your walls. 🧱", "Let him cook. 🍳", "Bro thinks he's the main character. 🎬", "It's evolving, just backwards. 🐒", "Big brain move. 🧠", "Wait, you guys are sleeping? 👁️👄👁️", "Bold of you to assume I can read. 📖", "I have achieved comedy. 🎭", "My goals are beyond your understanding. ⚡", "There is 1 Impostor among us. 🚀", "Sheeesh! 🥶", "Skill issue. 🎮", "No context needed. 😶", "We have meme at home. 🏠", "I'm not even mad, that's amazing. 👏", "Stop it, get some help. 🛑"];                       chattable.sendMessage(memes[Math.floor(Math.random() * memes.length)]); } }; chattable.initialize({ theme: "Wannabe XP" });chattable.on("connection",n=>{const e=document.getElementById("online-users");e.innerHTML="",Object.values(n).forEach(n=>{const t=document.createElement("li");t.textContent=n,t.classList.add("list-item"),e.appendChild(t)});});</script>
+<a href="https://a9scorner.neocities.org/writing/peter">read this pls</a>
+      <p>HI! I'm a9, a <b id="age"></b> year old programmer, and just like you, I am reviving the web!</p>
+      <p>Meet Jellio! He consists of... IDK I think solid Oxygen tho lol</p>
+      <img src="Jellio.png" style="width: 5%;">
+      <div>
+        <p>My tabling</p><img src="https://tabf5.com/img/100/145.webp" width="96">
+      <p>I made a sport! You can find the guide that I made as formal as possible by clicking </p><a href="https://a9scorner.neocities.org/HoldOut.pdf">me!</a>
+      </div>
+      <hr>
+      <div>
+    <a href="https://intragalactic-brain-bubbles.neocities.org/" target="_blank">
+      <img src="https://darkwing14.github.io/IndieWeb/resources/sapphireforkback.png" alt="Back">
+    </a>
+    <a href="https://darkwing14.github.io/IndieWeb/sapphirefork" target="_blank">
+      <img src="https://darkwing14.github.io/IndieWeb/resources/sapphireforkmiddle.png" alt="Info">
+    </a>
+    <a href="https://purplestarship.neocities.org/" target="_blank">
+      <img src="https://darkwing14.github.io/IndieWeb/resources/sapphireforknext.png" alt="Next">
+    </a>
+    <p>This is the Sapphire Fork webring!</p>
+</div>
+<div style="width: 50%;"><map name="win7widget-compact">
+<area href="https://baccyflap.com/noai" target="_blank" shape="rect" coords="0,0,216,29" alt="no ai webring" title="no ai webring">
+<area href="https://baccyflap.com/noai/?prv&s=anp" target="_top" shape="rect" coords="102,45,199,71" alt="previous" title="previous">
+<area href="https://baccyflap.com/noai/?rnd" target="_top" shape="rect" coords="102,81,199,105" alt="random" title="random">
+<area href="https://baccyflap.com/noai/?nxt&s=anp" target="_top" shape="rect" coords="102,116,199,141" alt="next" title="next">
+</map>
+<img usemap="#win7widget-compact" src="https://baccyflap.com/noai/win7widget-compact.gif" alt="a Windows 7 style dialog box titled 'The No AI Webring' with a little icon showing a computer chip in a rubbish bin. beside it are three clickable buttons, labeled Previous, Random and Next"></div>
+<a href="https://indiedarkwing.neocities.org/netring"><img src="https://indiedarkwing.neocities.org/netring.png" alt="YOUARENOW"></a>
+<p>press p. i dare you. or type a9 &gt;:D</p>
+
+<iframe src="/lilguy.html?FlagToUnCacheRightNowEvenLessOKthistimeitworksNomorecache=True" width="200" height="200"
+style="border:none;overflow:hidden;background:transparent;width:200px;height:200px;">
+</iframe>
+<h3>Embed lilguy</h3>
+
+<p>Copy this onto your website:</p>
+
+<pre>
+&lt;iframe src="https://a9scorner.neocities.org/lilguy.html" width="200" height="200"
+style="border:none;overflow:hidden;background:transparent;"&gt;
+&lt;/iframe&gt;
+</pre>
+
+<p>lilguy automatically scales to fit the iframe.</p>
+
+<p>Square sizes usually look best.</p>
+    </div>
+  <a href="music.html" style="color: rgba(255,255,255,0.1);">Music! (secret)</a>
+  
+  <script>// Keep track of the audio context globally
+let audioCtx = null;
+
+function playFire() {
+  // Initialize AudioContext on user gesture to comply with browser policies
+  if (!audioCtx) {
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  }
+
+  // Resume context if it was suspended (browser security)
+  if (audioCtx.state === 'suspended') {
+    audioCtx.resume();
+  }
+
+  // --- 1. NOISE GENERATORS ---
+  // Generates 2 seconds of White Noise
+  const bufferSize = audioCtx.sampleRate * 2;
+  const whiteNoiseBuffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+  const whiteData = whiteNoiseBuffer.getChannelData(0);
+  
+  // Generates 2 seconds of Pink Noise (deeper, fuller sound)
+  const pinkNoiseBuffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+  const pinkData = pinkNoiseBuffer.getChannelData(0);
+
+  let b0, b1, b2, b3, b4, b5, b6;
+  b0 = b1 = b2 = b3 = b4 = b5 = b6 = 0.0;
+
+  for (let i = 0; i < bufferSize; i++) {
+    const white = Math.random() * 2 - 1;
+    whiteData[i] = white;
+
+    // Pink noise filter approximation
+    b0 = 0.99886 * b0 + white * 0.0555179;
+    b1 = 0.99332 * b1 + white * 0.0750759;
+    b2 = 0.96900 * b2 + white * 0.1538520;
+    b3 = 0.86650 * b3 + white * 0.3104856;
+    b4 = 0.55000 * b4 + white * 0.5329522;
+    b5 = -0.7616 * b5 - white * 0.0168980;
+    pinkData[i] = b0 + b1 + b2 + b3 + b4 + b5 + b6 + white * 0.5362;
+    pinkData[i] *= 0.11; // Rescue gain
+    b6 = white * 0.115926;
+  }
+
+  // --- 2. THE MAIN ROAR (Pink Noise + Low Pass) ---
+  const roarSource = audioCtx.createBufferSource();
+  roarSource.buffer = pinkNoiseBuffer;
+  roarSource.loop = true;
+
+  const roarFilter = audioCtx.createBiquadFilter();
+  roarFilter.type = 'lowpass';
+  roarFilter.frequency.value = 400; // Deep rumble
+
+  const roarGain = audioCtx.createGain();
+  roarGain.gain.value = 0.5;
+
+  roarSource.connect(roarFilter);
+  roarFilter.connect(roarGain);
+  roarGain.connect(audioCtx.destination);
+
+  // --- 3. THE SIZZLE (White Noise + Band Pass) ---
+  const sizzleSource = audioCtx.createBufferSource();
+  sizzleSource.buffer = whiteNoiseBuffer;
+  sizzleSource.loop = true;
+
+  const sizzleFilter = audioCtx.createBiquadFilter();
+  sizzleFilter.type = 'bandpass';
+  sizzleFilter.frequency.value = 1200;
+  sizzleFilter.Q.value = 1;
+
+  const sizzleGain = audioCtx.createGain();
+  sizzleGain.gain.value = 0.08;
+
+  sizzleSource.connect(sizzleFilter);
+  sizzleFilter.connect(sizzleGain);
+  sizzleGain.connect(audioCtx.destination);
+
+  // --- 4. THE CRACKLES (Procedural Micro-Pops) ---
+  const crackleSource = audioCtx.createBufferSource();
+  crackleSource.buffer = whiteNoiseBuffer;
+  crackleSource.loop = true;
+
+  const crackleFilter = audioCtx.createBiquadFilter();
+  crackleFilter.type = 'highpass';
+  crackleFilter.frequency.value = 800; // Keep only crisp frequencies
+
+  const crackleGain = audioCtx.createGain();
+  crackleGain.gain.value = 0; // Handled dynamically below
+
+  crackleSource.connect(crackleFilter);
+  crackleFilter.connect(crackleGain);
+  crackleGain.connect(audioCtx.destination);
+
+  // Start the baseline loops
+  roarSource.start();
+  sizzleSource.start();
+  crackleSource.start();
+
+  // --- 5. REAL-TIME RANDOMIZATION LOOP ---
+  // Continuously generates random volume spikes for the crackle effect
+  function scheduleCrackles() {
+    const now = audioCtx.currentTime;
+    
+    // Randomize crackle frequency and intensity
+    const nextCrackleTime = Math.random() * 0.3 + 0.05; // Every 50ms to 350ms
+    const crackleIntensity = Math.random() * 0.7 + 0.3; // Volume spike height
+    const crackleDuration = Math.random() * 0.015 + 0.005; // 5ms to 20ms burst
+
+    // Rapidly ramp volume up and down to create a "pop"
+    crackleGain.gain.setValueAtTime(0, now);
+    crackleGain.gain.linearRampToValueAtTime(crackleIntensity, now + 0.002);
+    crackleGain.gain.exponentialRampToValueAtTime(0.001, now + crackleDuration);
+
+    // Gently fluctuate the background roar to simulate moving flames
+    const roarFluctuation = 0.4 + (Math.random() * 0.2);
+    roarGain.gain.linearRampToValueAtTime(roarFluctuation, now + nextCrackleTime);
+
+    // Schedule the next crackle event recursively
+    setTimeout(scheduleCrackles, nextCrackleTime * 1000);
+  }
+
+  // Start the crackle simulation loop
+  scheduleCrackles();
+}
+</script>
+  
+<script>
+  const age = document.getElementById("age");
+  const today = new Date();
+  let myAge = today.getFullYear() - 2014;
+
+  const currentMonth = today.getMonth();
+  const currentDate = today.getDate();
+
+  if (currentMonth < 2 || (currentMonth === 2 && currentDate < 6)) {
+    myAge--;
+  }
+  if (age) age.textContent = myAge;
+
+  if (currentMonth === 2 && currentDate === 6) {
+    const style = document.createElement("style");
+    style.textContent = `
+      @keyframes bdayFadeIn { from { opacity: 0; } to { opacity: 1; } }
+      @keyframes bdayPop { from { transform: scale(0.5); } to { transform: scale(1); } }
+      @keyframes confettiFall {
+        0% { transform: translateY(-50px) rotate(0deg); opacity: 1; }
+        100% { transform: translateY(105vh) rotate(360deg); opacity: 0; }
+      }
+    `;
+    document.head.appendChild(style);
+
+    const bdayOverlay = document.createElement("div");
+    bdayOverlay.style.cssText = `
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.9);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 99999;
+      font-family: 'Courier New', monospace;
+      color: #feff38;
+      animation: bdayFadeIn 0.5s ease-out forwards;
+      overflow: hidden;
+    `;
+
+    const bdayText = document.createElement("h1");
+    bdayText.textContent = "🎉 HAPPY BIRTHDAY A9! 🎉";
+    bdayText.style.cssText = `
+      font-size: 3.5rem;
+      text-shadow: 0 0 20px #feff38, 4px 4px 0 #000;
+      text-align: center;
+      margin: 0;
+      padding: 20px;
+      animation: bdayPop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    `;
+    bdayOverlay.appendChild(bdayText);
+
+    const particleCount = 100;
+    const items = ["🎉", "✨", "🍰", "🎈", "🎁", "🔴", "🟢", "🔵"];
+    
+    for (let i = 0; i < particleCount; i++) {
+      const p = document.createElement("div");
+      const isEmoji = Math.random() > 0.5;
+      
+      if (isEmoji) {
+        p.textContent = items[Math.floor(Math.random() * items.length)];
+        p.style.fontSize = `${Math.random() * 24 + 16}px`;
+      } else {
+        p.style.width = `${Math.random() * 12 + 8}px`;
+        p.style.height = `${Math.random() * 12 + 8}px`;
+        p.style.backgroundColor = `hsl(${Math.random() * 360}, 100%, 60%)`;
+      }
+
+      p.style.cssText += `
+        position: absolute;
+        top: -50px;
+        left: ${Math.random() * 100}vw;
+        pointer-events: none;
+        user-select: none;
+        animation: confettiFall ${Math.random() * 3 + 2}s linear infinite;
+        animation-delay: -${Math.random() * 5}s;
+      `;
+      bdayOverlay.appendChild(p);
+    }
+
+    document.body.appendChild(bdayOverlay);
+
+    setTimeout(() => {
+      bdayOverlay.style.transition = "opacity 1s ease";
+      bdayOverlay.style.opacity = "0";
+      setTimeout(() => {
+        bdayOverlay.remove();
+        style.remove();
+      }, 1000);
+    }, 7000);
+  }
+</script>
+
+  <script>
+let mandelFrame = null;
+
+document.addEventListener("keydown", (e) => {
+  if (e.key.toLowerCase() !== "m") return;
+
+  if (mandelFrame) {
+    mandelFrame.remove();
+    mandelFrame = null;
+    return;
+  }
+
+  mandelFrame = document.createElement("iframe");
+  mandelFrame.src = "/mandel.html";
+
+  mandelFrame.style.position = "fixed";
+  mandelFrame.style.width = "80vw";
+  mandelFrame.style.height = "80vh";
+  mandelFrame.style.left = "50%";
+  mandelFrame.style.top = "50%";
+  mandelFrame.style.transform = "translate(-50%, -50%)";
+
+  mandelFrame.style.border = "3px solid black";
+  mandelFrame.style.borderRadius = "12px";
+  mandelFrame.style.background = "white";
+  mandelFrame.style.zIndex = "999999";
+  mandelFrame.style.boxShadow = "0 10px 30px rgba(0,0,0,0.4)";
+
+  document.body.appendChild(mandelFrame);
+});
+</script>
+  <script>
+    
+    const templates = [
+  () => `Powered by ${pick(things)}!`,
+  () => `Now with ${pick(adjectives)} ${pick(things)}!`,
+  () => `${pick(adjectives)} ${pick(things)} included!`,
+  () => `Warning: contains ${pick(things)}.`,
+  () => `Definitely not ${pick(things)}.`,
+  () => `Please do not feed the ${pick(things)}.`,
+  () => `100% ${pick(adjectives)}.`,
+  () => `Ask your doctor about ${pick(things)}.`,
+  () => `You unlocked: ${pick(things)}.`,
+  () => `Batteries sold ${pick(adverbs)}.`,
+  () => `Made by ${pick(adjectives)} ${pick(things)}.`,
+  () => `Making ${pick(adjectives)} ${pick(things)} since\nfeb 18 2026!`
+];
+
+const adjectives = [
+  "quantum",
+  "cursed",
+  "suspicious",
+  "turbo",
+  "interdimensional",
+  "government-issued",
+  "slightly broken",
+  "extra crispy",
+  "forbidden",
+  "radioactive"
+];
+
+const things = [
+  "JavaScript",
+  "potatoes",
+  "rubber ducks",
+  "ferrets",
+  "cheese",
+  "toasters",
+  "bugs",
+  "pixels",
+  "spaghetti code",
+  "friendship",
+  "cookies",
+  "hamsters",
+  "mysterious liquids"
+];
+
+const adverbs = [
+  "separately",
+  "yesterday",
+  "eventually",
+  "underwater",
+  "by accident"
+];
+
+function pick(arr){
+  return arr[Math.floor(Math.random() * arr.length)];
+}
+
+function generateSplash(){
+  if(Math.random() < 0.001){
+    return "WAIT... HOW DID YOU GET THIS?";
+  }
+
+  return pick(templates)();
+}
+
+document.getElementById("splash").textContent = generateSplash();
+  </script>
+<script>
+const TRACK_LENGTH = 6;
+
+let greenPos = 0;
+let redPos = TRACK_LENGTH - 1;
+
+let running = false;
+let waiting = false;
+let gameEnabled = false;
+
+let score = 0;
+let best = 0;
+
+// speed system
+let baseSpeed = 250;
+let currentSpeed = baseSpeed;
+
+const baseTitle = "Welcome To A9's Corner!";
+
+// overlay
+const overlay = document.getElementById("focusOverlay");
+
+function showOverlay() {
+  if (overlay) overlay.style.display = "flex";
+}
+
+function hideOverlay() {
+  if (overlay) overlay.style.display = "none";
+}
+
+function renderTrack(colorOverride = null) {
+  let line = "";
+
+  for (let i = 0; i < TRACK_LENGTH; i++) {
+    const isGreen = i === greenPos;
+    const isRed = i === redPos;
+    const touching = greenPos === redPos;
+
+    if (colorOverride === "blue" && touching) {
+      if (isGreen || isRed) {
+        line += "🟦";
+        continue;
+      }
+    }
+
+    if (isGreen && isRed) {
+      line += "🎯";
+    } else if (isGreen) {
+      line += "🟩";
+    } else if (isRed) {
+      line += "🟥";
+    } else {
+      line += "⬜";
+    }
+  }
+
+  document.title = `${line} | Score: ${score} | Best: ${best}`;
+}
+
+// speed boost
+function applySpeedBoost() {
+  currentSpeed *= 0.95; // 5% faster each win
+}
+
+function showResult(didScore) {
+  waiting = true;
+  running = false;
+
+  if (didScore) {
+    score++;
+    best = Math.max(best, score);
+
+    applySpeedBoost();
+
+    document.title = `🟦 HIT! +1 | Score: ${score} | Best: ${best}`;
+  } else {
+    score = 0;
+    currentSpeed = baseSpeed;
+    document.title = `❌ MISS! | Score reset | Best: ${best}`;
+  }
+
+  setTimeout(() => {
+    if (gameEnabled) startRound();
+  }, 1000);
+}
+
+function startRound() {
+  greenPos = 0;
+  redPos = TRACK_LENGTH - 1;
+
+  running = true;
+  waiting = false;
+
+  renderTrack();
+}
+
+function stopGame() {
+  running = false;
+  waiting = false;
+  hideOverlay();
+  document.title = baseTitle;
+}
+
+// INPUT
+document.addEventListener("keydown", (e) => {
+  if (e.code === "KeyP") {
+    e.preventDefault();
+
+    gameEnabled = !gameEnabled;
+
+    if (gameEnabled) {
+      showOverlay();
+      startRound();
+    } else {
+      stopGame();
+    }
+
+    return;
+  }
+
+  if (!gameEnabled) return;
+  if (e.code !== "Space") return;
+
+  e.preventDefault();
+
+  if (waiting) return;
+
+  const hit = greenPos === redPos;
+  showResult(hit);
+});
+
+// GAME LOOP
+function loop() {
+  if (running && gameEnabled) {
+    greenPos++;
+
+    renderTrack();
+
+    if (greenPos > redPos) {
+      showResult(false);
+    }
+  }
+
+  setTimeout(() => {
+    requestAnimationFrame(loop);
+  }, currentSpeed);
+}
+
+document.title = baseTitle;
+loop();
+</script>
+<script>
+const MAGNET_RADIUS = 140;
+const ATTACH_RADIUS = 10;
+const STRENGTH = 0.05;
+
+let mouseX = window.innerWidth / 2;
+let mouseY = window.innerHeight / 2;
+
+let magnetEnabled = false;
+
+document.addEventListener("mousemove", (e) => {
+  mouseX = e.clientX;
+  mouseY = e.clientY;
+});
+
+// Secret code: A then 9
+let waitingFor9 = false;
+
+document.addEventListener("keydown", (e) => {
+  const key = e.key.toLowerCase();
+
+  if (key === "a") {
+    waitingFor9 = true;
+
+    setTimeout(() => {
+      waitingFor9 = false;
+    }, 1000); // 1 second to press 9
+  }
+  else if (key === "9" && waitingFor9) {
+    waitingFor9 = false;
+    magnetEnabled = !magnetEnabled;
+
+    console.log(
+      magnetEnabled
+        ? "A9 magnet enabled"
+        : "A9 magnet disabled"
+    );
+  }
+  else {
+    waitingFor9 = false;
+  }
+});
+
+// ONLY safe visual objects
+const items = Array.from(document.querySelectorAll("a, img, p"))
+  .filter(el =>
+    el.id !== "jellioSticker" &&
+    el.id !== "moodBtn"
+  );
+
+const state = new Map();
+
+items.forEach(el => {
+  state.set(el, {
+    vx: 0,
+    vy: 0,
+    attached: false
+  });
+
+  el.style.position = "relative";
+  el.style.willChange = "transform";
+});
+
+function tick() {
+  for (const el of items) {
+    const s = state.get(el);
+
+    // Disabled → smoothly return to normal
+    if (!magnetEnabled) {
+      s.vx *= 0.85;
+      s.vy *= 0.85;
+
+      el.style.transform =
+        `translate(${s.vx}px, ${s.vy}px)`;
+
+      continue;
+    }
+
+    const rect = el.getBoundingClientRect();
+    const cx = rect.left + rect.width / 2;
+    const cy = rect.top + rect.height / 2;
+
+    const dx = mouseX - cx;
+    const dy = mouseY - cy;
+    const dist = Math.sqrt(dx * dx + dy * dy);
+
+    const inMarquee = el.closest("#marquee") !== null;
+
+    const canAttach = !inMarquee;
+
+    if (dist > MAGNET_RADIUS) {
+      s.attached = false;
+    }
+
+    if (canAttach && dist < ATTACH_RADIUS) {
+      s.attached = true;
+    }
+
+    if (s.attached) {
+      const tx = mouseX - cx;
+      const ty = mouseY - cy;
+
+      s.vx += tx * 0.2;
+      s.vy += ty * 0.2;
+
+      s.vx *= 0.75;
+      s.vy *= 0.75;
+    }
+    else if (dist < MAGNET_RADIUS) {
+      const force = 1 - dist / MAGNET_RADIUS;
+
+      s.vx += dx * STRENGTH * force;
+      s.vy += dy * STRENGTH * force;
+    }
+    else {
+      s.vx *= 0.85;
+      s.vy *= 0.85;
+    }
+
+    el.style.transform =
+      `translate(${s.vx}px, ${s.vy}px)`;
+  }
+
+  requestAnimationFrame(tick);
+}
+
+tick();
+</script>
+<script>
+document.addEventListener("mousemove", (e) => {
+  const s = document.createElement("div");
+  s.style.position = "fixed";
+  s.style.left = e.clientX + "px";
+  s.style.top = e.clientY + "px";
+  s.style.width = "6px";
+  s.style.height = "6px";
+  s.style.background = "#38b6ff";
+  s.style.borderRadius = "50%";
+  s.style.pointerEvents = "none";
+  s.style.opacity = 1;
+  document.body.appendChild(s);
+
+  let life = 0;
+  const fade = setInterval(() => {
+    life += 0.05;
+    s.style.opacity -= 0.05;
+    s.style.transform = `scale(${1 + life})`;
+    if (s.style.opacity <= 0) {
+      clearInterval(fade);
+      s.remove();
+    }
+  }, 20);
+});
+</script>
+<script>
+(function() {
+    let isRunning = false;
+    let t = 0;
+    
+    // Maintain two function handles and a blend factor to handle seamless cross-fading
+    let currentEq, nextEq;
+    let blendAlpha = 0; 
+    let isTransitioning = false;
+
+    const colors = [
+        { r: 10,  g: 163, b: 170 }, // #0aa3aa
+        { r: 56,  g: 182, b: 255 }, // #38b6ff
+        { r: 254, g: 255, b: 56  }  // #feff38
+    ];
+
+    const pick = arr => arr[Math.floor(Math.random() * arr.length)];
+    const randRange = (min, max) => (Math.random() * (max - min) + min).toFixed(3);
+
+    let canvas, ctx;
+
+    function injectCanvas() {
+        canvas = document.createElement('canvas');
+        // z-index: -9999 ensures it renders directly underneath all standard content divs
+        canvas.style.cssText = 'position:fixed; top:0; left:0; width:100vw; height:100vh; z-index:-9999; pointer-events:none;';
+        document.body.appendChild(canvas);
+        ctx = canvas.getContext('2d');
+
+        const resize = () => { canvas.width = window.innerWidth / 2; canvas.height = window.innerHeight / 2; };
+        window.addEventListener('resize', resize);
+        resize();
+    }
+    // Compiles a new standalone structural math generator function
+    function generateEquationFunction() {
+        const funcs = ['Math.sin', 'Math.cos'];
+        const vars = ['x', 'y', '(x+y)', '(x-y)'];
+        const ops = ['+', '-', '*'];
+
+        const term1 = `${pick(funcs)}(x * ${randRange(0.03, 0.1)} + t * ${randRange(0.5, 1.5)})`;
+        const term2 = `${pick(funcs)}(y * ${randRange(0.03, 0.1)} + t * ${randRange(0.5, 1.5)})`;
+        const term3 = `${pick(funcs)}(${pick(vars)} * ${randRange(0.02, 0.08)} + t * ${randRange(0.2, 1.0)})`;
+        const operator = pick(ops);
+
+        const mathString = `
+            let base = (${term1} ${operator} ${term2});
+            let modifier = Math.abs(${term3});
+            let raw = (base * 127 + 128) + (modifier * 255);
+            return Math.max(0, Math.min(1, raw / 510));
+        `;
+        return new Function('x', 'y', 't', 'Math', mathString);
+    }
+    function rotateEquations() {
+        if (!currentEq) {
+            currentEq = generateEquationFunction();
+            nextEq = generateEquationFunction();
+        } else {
+            // Shift the upcoming equation to active status and compile a new target destination
+            currentEq = nextEq;
+            nextEq = generateEquationFunction();
+            blendAlpha = 0;
+            isTransitioning = true;
+        }
+    }
+
+    function activateBackground() {
+        if (isRunning) return;
+        isRunning = true;
+        
+        injectCanvas();
+        rotateEquations();
+        animate();
+
+        // Automatically cycle and trigger a cross-fade sequence every 10 seconds
+        setInterval(rotateEquations, 10000);
+    }
+
+    function animate() {
+        const width = canvas.width;
+        const height = canvas.height;
+        const imgData = ctx.createImageData(width, height);
+        const data = imgData.data;
+        t += 0.02;
+
+        // Drive the mathematical interpolation fade factor forward during shifts
+        if (isTransitioning) {
+            blendAlpha += 0.015; // Controls the speed of the cross-fade blend
+            if (blendAlpha >= 1) {
+                blendAlpha = 1;
+                isTransitioning = false;
+            }
+        }
+
+        for (let y = 0; y < height; y++) {
+            for (let x = 0; x < width; x++) {
+                let valA = currentEq(x, y, t, Math);
+                let finalValue = valA;
+
+                // Blend the pixel color values together linearly if actively transitioning
+                if (isTransitioning) {
+                    let valB = nextEq(x, y, t, Math);
+                    finalValue = valA + (valB - valA) * blendAlpha;
+                }
+
+                let r, g, b;
+                if (finalValue < 0.5) {
+                    let pct = finalValue * 2;
+                    r = colors[0].r + (colors[1].r - colors[0].r) * pct;
+                    g = colors[0].g + (colors[1].g - colors[0].g) * pct;
+                    b = colors[0].b + (colors[1].b - colors[0].b) * pct;
+                } else {
+                    let pct = (finalValue - 0.5) * 2;
+                    r = colors[1].r + (colors[2].r - colors[1].r) * pct;
+                    g = colors[1].g + (colors[2].g - colors[1].g) * pct;
+                    b = colors[1].b + (colors[2].b - colors[1].b) * pct;
+                }
+
+                let pixelIndex = (x + y * width) * 4;
+                data[pixelIndex]     = r;
+                data[pixelIndex + 1] = g;
+                data[pixelIndex + 2] = b;
+                data[pixelIndex + 3] = 255;
+            }
+        }
+        ctx.putImageData(imgData, 0, 0);
+        requestAnimationFrame(animate);
+    }
+
+    // Standard lucky load roll execution
+    if (Math.floor(Math.random() * 256) === 7) { 
+        activateBackground();
+    }
+
+    // Sequential key listener reading the word 'xor'
+    let inputBuffer = "";
+    window.addEventListener('keydown', (e) => {
+        if (e.key.length === 1) {
+            inputBuffer += e.key.toLowerCase();
+            if (inputBuffer.length > 3) inputBuffer = inputBuffer.substring(inputBuffer.length - 3);
+            if (inputBuffer === "xor") activateBackground();
+        }
+    });
+})();
+</script>
+<script>
+const golf = () => {
+  let c = document.body.appendChild(document.createElement("canvas")), $ = c.getContext("2d"), W = c.width = innerWidth, H = c.height = innerHeight, p = {x: 100, y: H/2}, v = {x: 0, y: 0}, t = {x: W-150, y: H/2}, dr = 0, st = 0, m = {x: 0, y: 0}, obs = [{x: W/2-30, y: H/2-100, w: 60, h: 200}]; c.style = "position:fixed;top:0;left:0;z-index:9999;background:#4CAF50";
+  const loop = () => {
+    $.fillStyle = "#4CAF50"; $.fillRect(0, 0, W, H); $.fillStyle = "#388E3C"; $.beginPath(); $.arc(t.x, t.y, 25, 0, 7); $.fill(); $.fillStyle = "#000"; $.font = "24px Arial"; $.fillText("🕳️", t.x-12, t.y+8); $.fillStyle = "#795548"; obs.forEach(o => $.fillRect(o.x, o.y, o.w, o.h));
+    if (dr) { $.beginPath(); $.strokeStyle = "#fff"; $.lineWidth = 2; $.moveTo(p.x, p.y); $.lineTo(p.x+(p.x-m.x), p.y+(p.y-m.y)); $.stroke(); }
+    p.x += v.x; p.y += v.y; v.x *= 0.96; v.y *= 0.96; if (p.x < 15 || p.x > W-15) v.x *= -1; if (p.y < 15 || p.y > H-15) v.y *= -1;
+    obs.forEach(o => { if (p.x > o.x && p.x < o.x+o.w && p.y > o.y && p.y < o.y+o.h) { v.x *= -1; v.y *= -1; p.x += v.x; p.y += v.y; } });
+    $.font = "30px Arial"; $.fillText("🥚", p.x-15, p.y+11); if (Math.hypot(p.x-t.x, p.y-t.y) < 15) { alert(`Hole in ${st}!`); c.remove(); window.removeEventListener("keydown", k); return; }
+    requestAnimationFrame(loop);
+  };
+  
+  c.onmousedown = e => { if (Math.hypot(e.clientX-p.x, e.clientY-p.y) < 40) { dr = 1; m.x = e.clientX; m.y = e.clientY; } };
+  c.onmousemove = e => { if (dr) { m.x = e.clientX; m.y = e.clientY; } };
+  c.onmouseup = e => { if (dr) { dr = 0; v.x = (p.x-e.clientX)*0.12; v.y = (p.y-e.clientY)*0.12; st++; } };
+  loop();
+};
+let str = "";
+window.k = e => { str = (str + e.key).slice(-4); if (str === "golf") golf();
+};
+window.addEventListener("keydown", k);
+
+// Line 1000!!
+</script>
+  </body>
+</html>

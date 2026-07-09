@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<rss version="2.0">
+  <channel>
+    <title>a9plus</title>
+    <link>https://a9scorner.neocities.org</link>
+    <description>Hi! I'm a9 and I now have an RSS feed!</description>
+
+    <item>
+      <title>First Post!!!!!!!</title>
+      <link>https://a9scorner.neocities.org/rss.xml</link>
+      <description> <![CDATA[This is my first post and I hope I will continue to post!
+IMAGE TEST. IF YOU SEE A TURTLE, its ok <img src="squirtturtle.jpg" alt="the image doesnt work :P or your reader doesnt support">
+]]>
+ </description>
+      <pubDate>Mon, 25 May 2026 11:00:00 EDT</pubDate>
+    </item>
+    
+    <item>
+      <title>Dear Peter: of war and hope.</title>
+      <link>https://a9scorner.neocities.org/writing/peter</link>
+      <description> <![CDATA[Go <a href="https://a9scorner.neocities.org/writing/peter">here</a> to read! Warning: contains sensitive topics, about the holocaust. do not read if you do not wish.
+]]>
+ </description>
+      <pubDate>Sat, 30 May 2026 05:53:45 EDT</pubDate>
+    </item>
+
+  </channel>
+</rss>

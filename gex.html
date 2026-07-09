@@ -1,0 +1,726 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Gex Indie Browser</title>
+
+<style>
+body {
+  margin: 0;
+  background: #38b6ff url("blissa9.png") center/cover no-repeat fixed;
+  font-family: Verdana, sans-serif;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+/* Top bar */
+#topbar {
+  margin: 10px;
+  padding: 8px 12px;
+  background: rgba(254,255,56,0.95);
+  border-radius: 18px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 6px 16px rgba(0,0,0,0.25);
+  z-index: 9999;
+}
+
+#logo {
+  font-weight: bold;
+  font-size: 22px;
+}
+
+/* Buttons */
+.btn {
+  border: none;
+  background: rgba(0,0,0,0.08);
+  border-radius: 999px;
+  padding: 4px 10px;
+  cursor: pointer;
+  font-size: 14px;
+}
+.btn:active { transform: translateY(1px); }
+
+/* Settings icon */
+#settings-btn {
+  background: none;
+  padding: 0;
+}
+#settings-btn img {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+}
+
+/* URL bar */
+#url-wrapper {
+  flex: 1;
+  position: relative;
+  display: flex;
+  align-items: center;
+  background: white;
+  border-radius: 999px;
+  padding: 2px 2px 2px 10px;
+  box-shadow: inset 0 0 0 1px rgba(0,0,0,0.08);
+}
+#urlbar {
+  flex: 1;
+  border: none;
+  outline: none;
+  font-size: 15px;
+  padding: 6px 8px;
+  border-radius: 999px;
+}
+#go-btn {
+  border: none;
+  background: #38b6ff;
+  color: white;
+  border-radius: 999px;
+  padding: 4px 12px;
+  margin-left: 4px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+/* Bookmarks dropdown */
+#bookmarks {
+  position: relative;
+  z-index: 99999;
+}
+#bookmark-list {
+  position: absolute;
+  top: 110%;
+  right: 0;
+  background: #fffef0;
+  border-radius: 12px;
+  box-shadow: 0 6px 16px rgba(0,0,0,0.25);
+  padding: 6px 0;
+  min-width: 220px;
+  max-height: 220px;
+  overflow-y: auto;
+  display: none;
+  font-size: 13px;
+  z-index: 99999;
+}
+#bookmark-list div {
+  padding: 4px 10px;
+  cursor: pointer;
+}
+#bookmark-list div:hover {
+  background: rgba(0,0,0,0.06);
+}
+
+/* Viewport */
+#view {
+  flex: 1;
+  margin: 10px;
+  border-radius: 18px;
+  overflow: hidden;
+  background: white;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.3);
+  position: relative;
+}
+
+iframe {
+  width: 100%;
+  height: 100%;
+  border: none;
+}
+
+/* Settings page */
+#settings {
+  position: absolute;
+  inset: 0;
+  padding: 20px;
+  background: #fffdf0;
+  display: none;
+  overflow-y: auto;
+  font-size: 14px;
+}
+#settings h2 {
+  margin-top: 0;
+}
+
+/* Modal for custom alerts/prompts */
+#gex-modal {
+  position: fixed;
+  inset: 0;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0,0,0,0.4);
+  z-index: 999999;
+}
+#gex-modal-box {
+  background: #fffef0;
+  padding: 20px;
+  border-radius: 16px;
+  min-width: 260px;
+  max-width: 360px;
+  box-shadow: 0 6px 16px rgba(0,0,0,0.3);
+  font-size: 14px;
+}
+
+/* DEVTOOLS */
+#devtools {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 40%;
+  background: #1e1e1e;
+  color: #e0e0e0;
+  font-family: monospace;
+  display: none;
+  flex-direction: column;
+  border-top: 3px solid #38b6ff;
+  z-index: 999999;
+}
+
+#devtools-tabs {
+  display: flex;
+  background: #2a2a2a;
+  border-bottom: 1px solid #444;
+}
+
+.devtab {
+  padding: 6px 12px;
+  cursor: pointer;
+  border-right: 1px solid #444;
+}
+.devtab.active {
+  background: #38b6ff;
+  color: black;
+}
+
+#devtools-content {
+  flex: 1;
+  overflow: auto;
+  padding: 10px;
+  white-space: pre-wrap;
+  font-size: 13px;
+}
+
+#devtools-console-input {
+  width: 100%;
+  padding: 6px;
+  border: none;
+  outline: none;
+  background: #111;
+  color: #38b6ff;
+}
+</style>
+</head>
+<body>
+
+<div id="topbar">
+  <div id="logo">Gex Indie</div>
+  <button id="back-btn" class="btn">⟵</button>
+  <button id="forward-btn" class="btn">⟶</button>
+
+  <div id="url-wrapper">
+    <input id="urlbar" placeholder="neo://username, ext://example.com, or search…" />
+    <button id="go-btn">Go</button>
+  </div>
+
+  <div id="bookmarks">
+    <button id="bookmark-btn" class="btn">☆</button>
+    <div id="bookmark-list"></div>
+  </div>
+
+  <button id="save-btn" class="btn">Save</button>
+
+  <button id="fullscreen-btn" class="btn">⛶</button>
+
+  <button id="settings-btn" class="btn">
+    <img src="gex.png" alt="settings">
+  </button>
+</div>
+
+<div id="view">
+  <iframe id="frame"></iframe>
+
+  <div id="settings">
+    <h2>Gex Indie Settings</h2>
+
+    <h3>Search Engine</h3>
+    <select id="search-engine">
+      <option value="wiby">Wiby (default)</option>
+      <option value="duckduckgo">DuckDuckGo</option>
+      <option value="4get">4get.ca</option>
+      <option value="custom">Custom…</option>
+    </select>
+
+    <div id="custom-engine-box" style="display:none; margin-top:10px;">
+      <input id="custom-engine-input" placeholder="https://example.com/search?q=%s" style="width:100%; padding:6px;">
+    </div>
+
+    <p style="margin-top:20px;">Close this page by loading any other URL.</p>
+  </div>
+</div>
+
+<!-- Custom modal -->
+<div id="gex-modal">
+  <div id="gex-modal-box"></div>
+</div>
+
+<!-- DEVTOOLS PANEL -->
+<div id="devtools">
+  <div id="devtools-tabs">
+    <div class="devtab active" data-tab="html">HTML</div>
+    <div class="devtab" data-tab="css">CSS</div>
+    <div class="devtab" data-tab="console">Console</div>
+    <div class="devtab" data-tab="network">Network</div>
+  </div>
+
+  <div id="devtools-content"></div>
+
+  <input id="devtools-console-input" placeholder="Type JS here… (Enter to run)">
+</div>
+
+<script>
+const urlbar = document.getElementById("urlbar");
+const frame = document.getElementById("frame");
+const backBtn = document.getElementById("back-btn");
+const forwardBtn = document.getElementById("forward-btn");
+const goBtn = document.getElementById("go-btn");
+const bookmarkBtn = document.getElementById("bookmark-btn");
+const bookmarkList = document.getElementById("bookmark-list");
+const saveBtn = document.getElementById("save-btn");
+const settingsBtn = document.getElementById("settings-btn");
+const settingsView = document.getElementById("settings");
+const fullscreenBtn = document.getElementById("fullscreen-btn");
+
+const modal = document.getElementById("gex-modal");
+const modalBox = document.getElementById("gex-modal-box");
+
+let historyStack = [];
+let historyIndex = -1;
+let navigatingHistory = false;
+let bookmarks = [];
+let dirHandle = null;
+
+/* dialogs */
+function customAlert(msg) {
+  modalBox.innerHTML = `
+    <div style="font-size:16px; margin-bottom:12px;">${msg}</div>
+    <button id="gex-alert-ok" style="padding:6px 12px; border:none; border-radius:8px; background:#38b6ff; color:white;">OK</button>
+  `;
+  modal.style.display = "flex";
+  document.getElementById("gex-alert-ok").onclick = () => {
+    modal.style.display = "none";
+  };
+}
+
+function customPrompt(msg, def="") {
+  return new Promise(resolve => {
+    modalBox.innerHTML = `
+      <div style="font-size:16px; margin-bottom:12px;">${msg}</div>
+      <input id="gex-prompt-input" value="${def}" style="width:100%; padding:6px; border-radius:8px; border:1px solid #ccc;">
+            <div style="margin-top:12px; display:flex; gap:8px;">
+        <button id="gex-prompt-ok" 
+          style="flex:1; padding:6px; border:none; border-radius:8px; background:#38b6ff; color:white;">
+          OK
+        </button>
+        <button id="gex-prompt-cancel" 
+          style="flex:1; padding:6px; border:none; border-radius:8px; background:#ccc;">
+          Cancel
+        </button>
+      </div>
+    `;
+
+    modal.style.display = "flex";
+
+    document.getElementById("gex-prompt-ok").onclick = () => {
+      const val = document.getElementById("gex-prompt-input").value;
+      modal.style.display = "none";
+      resolve(val);
+    };
+
+    document.getElementById("gex-prompt-cancel").onclick = () => {
+      modal.style.display = "none";
+      resolve(null);
+    };
+  });
+}
+
+window.alert = customAlert;
+window.prompt = customPrompt;
+window.confirm = msg => new Promise(resolve => {
+  customPrompt(msg).then(val => resolve(val !== null));
+});
+
+/* search engine */
+let searchEngine = localStorage.getItem("gexSearch") || "wiby";
+let customEngine = localStorage.getItem("gexSearchCustom") || "";
+
+const searchSelect = document.getElementById("search-engine");
+const customBox = document.getElementById("custom-engine-box");
+const customInput = document.getElementById("custom-engine-input");
+
+searchSelect.value = searchEngine;
+customInput.value = customEngine;
+if (searchEngine === "custom") customBox.style.display = "block";
+
+searchSelect.onchange = () => {
+  searchEngine = searchSelect.value;
+  localStorage.setItem("gexSearch", searchEngine);
+  customBox.style.display = searchEngine === "custom" ? "block" : "none";
+};
+
+customInput.oninput = () => {
+  customEngine = customInput.value;
+  localStorage.setItem("gexSearchCustom", customEngine);
+};
+
+function searchURL(q) {
+  q = encodeURIComponent(q);
+  switch (searchEngine) {
+    case "duckduckgo": return "https://duckduckgo.com/?q=" + q;
+    case "4get": return "https://4get.ca/web?s=" + q;
+    case "custom": return customEngine ? customEngine.replace("%s", q) : "https://wiby.me/?q=" + q;
+    default: return "https://wiby.me/?q=" + q;
+  }
+}
+
+/* URL helpers */
+function neoToReal(neoURL) {
+  if (!neoURL.startsWith("neo://")) return null;
+  let rest = neoURL.replace("neo://", "").trim();
+  if (!rest) return null;
+  const parts = rest.split("/");
+  const user = parts.shift();
+  const path = "/" + parts.join("/");
+  return "https://" + user + ".neocities.org" + (path === "/" ? "" : path);
+}
+
+function extToReal(extURL) {
+  if (!extURL.startsWith("ext://")) return null;
+  let raw = extURL.replace("ext://", "").trim();
+  if (!/\.[a-z]{2,}$/.test(raw)) return null;
+  return "https://" + raw;
+}
+
+function realToDisplay(realURL) {
+  try {
+    const u = new URL(realURL);
+    if (u.hostname.endsWith(".neocities.org")) {
+      const user = u.hostname.replace(".neocities.org", "");
+      const path = u.pathname === "/" ? "" : u.pathname;
+      return "neo://" + user + path;
+    }
+    return "ext://" + u.hostname + u.pathname;
+  } catch {
+    return realURL;
+  }
+}
+
+/* history */
+function pushHistory(url) {
+  historyStack = historyStack.slice(0, historyIndex + 1);
+  historyStack.push(url);
+  historyIndex = historyStack.length - 1;
+  updateNavButtons();
+}
+
+function updateNavButtons() {
+  backBtn.disabled = historyIndex <= 0;
+  forwardBtn.disabled = historyIndex >= historyStack.length - 1;
+}
+
+/* settings view */
+function showSettings() {
+  settingsView.style.display = "block";
+  frame.style.display = "none";
+}
+
+function hideSettings() {
+  settingsView.style.display = "none";
+  frame.style.display = "block";
+}
+
+/* navigation */
+function loadURL(input) {
+  if (!input) return;
+
+  if (input === "gex://settings") {
+    showSettings();
+    navigatingHistory = false;
+    pushHistory("gex://settings");
+    urlbar.value = "gex://settings";
+    return;
+  } else hideSettings();
+
+  let target = null;
+
+  if (input.startsWith("neo://")) {
+    target = neoToReal(input);
+    if (!target) return customAlert("neo:// needs a username.");
+  } else if (input.startsWith("ext://")) {
+    target = extToReal(input);
+    if (!target) return customAlert("EXT mode requires a full domain.");
+    customAlert("⚠ EXT MODE: External sites may be blocked by CORS.");
+  } else if (input.startsWith("http")) {
+    if (!input.includes(".neocities.org"))
+      return customAlert("Use neo:// or ext:// for external sites.");
+    target = input;
+  } else {
+    target = searchURL(input);
+  }
+
+  navigatingHistory = false;
+  frame.src = target;
+}
+
+goBtn.onclick = () => loadURL(urlbar.value.trim());
+urlbar.onkeydown = e => { if (e.key === "Enter") loadURL(urlbar.value.trim()); };
+
+backBtn.onclick = () => {
+  if (historyIndex > 0) {
+    historyIndex--;
+    navigatingHistory = true;
+    const url = historyStack[historyIndex];
+    if (url === "gex://settings") showSettings();
+    else { hideSettings(); frame.src = url; }
+    urlbar.value = url.startsWith("http") ? realToDisplay(url) : url;
+    updateNavButtons();
+  }
+};
+
+forwardBtn.onclick = () => {
+  if (historyIndex < historyStack.length - 1) {
+    historyIndex++;
+    navigatingHistory = true;
+    const url = historyStack[historyIndex];
+    if (url === "gex://settings") showSettings();
+    else { hideSettings(); frame.src = url; }
+    urlbar.value = url.startsWith("http") ? realToDisplay(url) : url;
+    updateNavButtons();
+  }
+};
+
+frame.addEventListener("load", () => {
+  const current = frame.src;
+  urlbar.value = realToDisplay(current);
+  if (!navigatingHistory) pushHistory(current);
+  navigatingHistory = false;
+});
+
+/* bookmarks */
+function loadBookmarks() {
+  try {
+    const raw = localStorage.getItem("gexBookmarks");
+    bookmarks = raw ? JSON.parse(raw) : [];
+  } catch { bookmarks = []; }
+  renderBookmarks();
+}
+
+function saveBookmarks() {
+  localStorage.setItem("gexBookmarks", JSON.stringify(bookmarks));
+}
+
+function renderBookmarks() {
+  bookmarkList.innerHTML = "";
+  const add = document.createElement("div");
+  add.textContent = "+ Add current page";
+  add.style.fontWeight = "bold";
+  add.onclick = async () => {
+    const current = urlbar.value.trim();
+    if (!current) return;
+    const label = await customPrompt("Bookmark name:", current);
+    if (!label) return;
+    bookmarks.push({ label, url: current });
+    saveBookmarks();
+    renderBookmarks();
+  };
+  bookmarkList.appendChild(add);
+
+  if (!bookmarks.length) {
+    const empty = document.createElement("div");
+    empty.textContent = "(no bookmarks yet)";
+    empty.style.opacity = "0.6";
+    bookmarkList.appendChild(empty);
+    return;
+  }
+
+  bookmarks.forEach(b => {
+    const item = document.createElement("div");
+    item.textContent = b.label + " — " + b.url;
+    item.addEventListener("click", () => {
+      bookmarkList.style.display = "none";
+      urlbar.value = b.url;
+      loadURL(b.url);
+    });
+    bookmarkList.appendChild(item);
+  });
+}
+
+bookmarkBtn.addEventListener("click", e => {
+  e.stopPropagation();
+  bookmarkList.style.display =
+    bookmarkList.style.display === "block" ? "none" : "block";
+});
+
+document.addEventListener("click", e => {
+  if (!bookmarkList.contains(e.target) && e.target !== bookmarkBtn) {
+    bookmarkList.style.display = "none";
+  }
+});
+
+/* save page */
+async function ensureDirHandle() {
+  if (!dirHandle) {
+    dirHandle = await window.showDirectoryPicker();
+  }
+  return dirHandle;
+}
+
+async function saveCurrentPage() {
+  if (!("showDirectoryPicker" in window)) {
+    customAlert("File System Access API not supported in this browser.");
+    return;
+  }
+  const currentURL = frame.src;
+  try {
+    const u = new URL(currentURL);
+    const filename =
+      (u.hostname.replace(".neocities.org", "") || "page") +
+      (u.pathname === "/" ? "" : u.pathname.replace(/\//g, "_")) +
+      ".html";
+
+    const dir = await ensureDirHandle();
+    const fileHandle = await dir.getFileHandle(filename, { create: true });
+    const writable = await fileHandle.createWritable();
+
+    let html;
+    try {
+      const doc = frame.contentDocument;
+      html = "<!-- Saved by Gex Indie -->\n" +
+             doc.documentElement.outerHTML;
+    } catch {
+      html = "<!-- Saved by Gex Indie (no access to page HTML) -->\n" +
+             "<p>Original URL: " + currentURL + "</p>";
+    }
+
+    await writable.write(html);
+    await writable.close();
+    customAlert("Saved to: " + filename);
+  } catch (err) {
+    console.error(err);
+    customAlert("Could not save page.");
+  }
+}
+
+saveBtn.onclick = () => saveCurrentPage();
+
+/* settings button */
+settingsBtn.onclick = () => {
+  urlbar.value = "gex://settings";
+  loadURL("gex://settings");
+};
+
+/* fullscreen */
+fullscreenBtn.onclick = () => {
+  if (!document.fullscreenElement) {
+    document.documentElement.requestFullscreen();
+    fullscreenBtn.textContent = "🡼";
+  } else {
+    document.exitFullscreen();
+    fullscreenBtn.textContent = "⛶";
+  }
+};
+
+/* DEVTOOLS */
+const devtools = document.getElementById("devtools");
+const devContent = document.getElementById("devtools-content");
+const devTabs = document.querySelectorAll(".devtab");
+const devConsoleInput = document.getElementById("devtools-console-input");
+
+const devBtn = document.createElement("button");
+devBtn.textContent = "<>";
+devBtn.className = "btn";
+devBtn.style.fontWeight = "bold";
+document.getElementById("topbar").appendChild(devBtn);
+
+devBtn.onclick = () => {
+  devtools.style.display = devtools.style.display === "flex" ? "none" : "flex";
+  updateDevTools();
+};
+
+devTabs.forEach(tab => {
+  tab.onclick = () => {
+    devTabs.forEach(t => t.classList.remove("active"));
+    tab.classList.add("active");
+    updateDevTools();
+  };
+});
+
+let networkLog = [];
+
+frame.addEventListener("load", () => {
+  networkLog.push("Loaded: " + frame.src);
+  if (networkLog.length > 200) networkLog.shift();
+  updateDevTools();
+});
+
+function updateDevTools() {
+  if (devtools.style.display !== "flex") return;
+  const active = document.querySelector(".devtab.active").dataset.tab;
+  if (active === "html") showHTML();
+  if (active === "css") showCSS();
+  if (active === "console") showConsole();
+  if (active === "network") showNetwork();
+}
+
+function showHTML() {
+  try {
+    const doc = frame.contentDocument;
+    devContent.textContent = doc.documentElement.outerHTML;
+  } catch {
+    devContent.textContent = "⚠ Cannot access HTML (CORS blocked)";
+  }
+}
+
+function showCSS() {
+  try {
+    const doc = frame.contentDocument;
+    let css = "";
+    [...doc.querySelectorAll("style")].forEach(s => css += s.innerHTML + "\n\n");
+    [...doc.querySelectorAll("[style]")].forEach(el => {
+      css += el.tagName + " { " + el.getAttribute("style") + " }\n";
+    });
+    devContent.textContent = css || "(no CSS found)";
+  } catch {
+    devContent.textContent = "⚠ Cannot access CSS (CORS blocked)";
+  }
+}
+
+function showConsole() {
+  devContent.textContent = "Console ready.\n";
+}
+
+devConsoleInput.addEventListener("keydown", e => {
+  if (e.key === "Enter") {
+    const code = devConsoleInput.value;
+    devConsoleInput.value = "";
+    try {
+      const result = frame.contentWindow.eval(code);
+      devContent.textContent += "> " + code + "\n" + result + "\n\n";
+    } catch (err) {
+      devContent.textContent += "> " + code + "\n⚠ " + err + "\n\n";
+    }
+  }
+});
+
+function showNetwork() {
+  devContent.textContent = networkLog.join("\n");
+}
+
+/* init */
+loadBookmarks();
+updateNavButtons();
+</script>
+</body>
+</html>

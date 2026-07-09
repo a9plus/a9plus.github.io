@@ -1,0 +1,506 @@
+x<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>WirePlay</title>
+  <style>
+body {
+  margin: 0;
+  background: #111;
+  color: #eee;
+  font-family: sans-serif;
+  user-select: none;
+  overflow: hidden;
+}
+
+#menu.hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+canvas {
+  display: block;
+  width: 100vw;
+  height: 100vh;
+  background: #000;
+  cursor: crosshair;
+}
+
+#menu {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.75);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 100;
+}
+
+#menuBox {
+  text-align: center;
+}
+
+#startBtn {
+  padding: 10px 20px;
+  font-size: 16px;
+  cursor: pointer;
+}
+  </style>
+</head>
+<body>
+<div id="menu">
+  <div id="menuBox">
+    <h1>WIREPLAY</h1>
+    <p>W/S to move or Left Stick forward and backward</p>
+    <p>Mouse to look or Right Stick on gamepad</p>
+    <p>Click to deform or RT on gamepad</p>
+    <p>NEWLY ADDED: up/down dpad or f/g on keyboard to change fov. figure it out yourself</p>
+    <p>read the comments! i did actually nice comments in my code this time</p>
+    <button id="startBtn">START</button>
+  </div>
+</div>
+
+<canvas id="canvas"></canvas>
+
+  <script>
+const menu = document.getElementById("menu");
+const startBtn = document.getElementById("startBtn");
+
+
+    const canvas = document.getElementById("canvas");
+    const ctx = canvas.getContext("2d");
+    canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+
+const W = canvas.width;
+const H = canvas.height;
+let started = false;
+
+startBtn.addEventListener("click", () => {
+  // Prevent the menu from intercepting anything immediately
+  menu.style.pointerEvents = "none";
+
+  // Fade out
+  menu.style.opacity = "0";
+
+  // Remove after fade finishes
+  setTimeout(() => {
+    menu.style.display = "none";
+    canvas.requestPointerLock();
+  }, 200);
+});
+
+document.getElementById("startBtn").onclick = () => {
+  started = true;
+  document.getElementById("menu").style.display = "none";
+};
+function deadzone(value, threshold = 0.18) {
+  return Math.abs(value) < threshold ? 0 : value;
+}
+    // Projection
+    let fov = 75;
+const FOV_MIN = 40;
+const FOV_MAX = 110;
+    const fovRad = (fov * Math.PI) / 180;
+    const aspect = W / H;
+    let projScale;
+
+function updateProjection() {
+  const fovRad = (fov * Math.PI) / 180;
+  projScale = 1 / Math.tan(fovRad / 2);
+}
+updateProjection();
+    const zNear = 0.1;
+
+    // Camera
+    let cam = {
+      x: 0,
+      y: 6,
+      z: 0,
+      yaw: 0,
+      pitch: -0.4,
+    };
+
+    // Velocity for accel/inertia
+    let vel = { x: 0, y: 0, z: 0 };
+    const ACCEL = 0.03;
+    const DAMPING = 0.90;
+
+    let keys = {};
+    let mouseDown = false;
+
+    // --- POINTER LOCK + MOUSELOOK ---
+
+    canvas.addEventListener("click", () => {
+  if (!started) return;
+  canvas.requestPointerLock();
+});
+
+    document.addEventListener("pointerlockchange", () => {
+      mouseDown = (document.pointerLockElement === canvas);
+    });
+
+    document.addEventListener("mousemove", e => {
+      if (document.pointerLockElement !== canvas) return;
+
+      const dx = e.movementX;
+      const dy = e.movementY;
+
+      cam.yaw   -= dx * 0.0025;
+      cam.pitch -= dy * 0.0025;
+
+      cam.pitch = Math.max(-Math.PI/2 + 0.05, Math.min(Math.PI/2 - 0.05, cam.pitch));
+    });
+
+    document.addEventListener("keydown", e => {
+      keys[e.key] = true;
+    });
+    document.addEventListener("keyup", e => {
+      keys[e.key] = false;
+    });
+    
+    document.addEventListener("keydown", e => {
+  keys[e.key] = true;
+
+  if (e.key === "f" || e.key === "F") {
+    fov = Math.max(FOV_MIN, fov - 2);
+    updateProjection();
+  }
+
+  if (e.key === "g" || e.key === "G") {
+    fov = Math.min(FOV_MAX, fov + 2);
+    updateProjection();
+  }
+});
+
+    // --- TERRAIN DEFORMATION STORAGE (WORLD SPACE) ---
+
+    const deformations = new Map(); // key: "ix,iz" -> height offset
+
+    function addDeformation(cx, cz, radius, amount) {
+      const rCells = Math.ceil(radius / CELL_SIZE);
+      const centerIx = Math.round(cx / CELL_SIZE);
+      const centerIz = Math.round(cz / CELL_SIZE);
+
+      for (let dz = -rCells; dz <= rCells; dz++) {
+        for (let dx = -rCells; dx <= rCells; dx++) {
+          const ix = centerIx + dx;
+          const iz = centerIz + dz;
+
+          const wx = ix * CELL_SIZE;
+          const wz = iz * CELL_SIZE;
+          const dist = Math.hypot(wx - cx, wz - cz);
+          if (dist > radius) continue;
+
+          const falloff = 1 - dist / radius;
+          const delta = Math.sign(cam.pitch) * amount * falloff;
+
+          const key = ix + "," + iz;
+          const prev = deformations.get(key) || 0;
+          deformations.set(key, prev + delta);
+        }
+      }
+    }
+
+    // Click to deform terrain in front of camera
+    document.addEventListener("mousedown", e => {
+      if (document.pointerLockElement !== canvas) return;
+      if (e.button !== 0) return; // left click only
+
+      // Point in front of camera
+      const forward = getForwardVector();
+      const dist = 15;
+      const cx = cam.x + forward.x * dist;
+      const cz = cam.z + forward.z * dist;
+
+      const radius = 10;
+      const amount = 3; // raise terrain
+      addDeformation(cx, cz, radius, amount);
+    });
+
+    // --- MOVEMENT WITH ACCEL + INERTIA ---
+
+    function getForwardVector() {
+      return {
+        x:  -Math.sin(cam.yaw) * Math.cos(cam.pitch),
+        y:  Math.sin(cam.pitch),
+        z: Math.cos(cam.yaw) * Math.cos(cam.pitch) // note the minus: matches camera transform
+      };
+    }
+let gamepadIndex = null;
+window.addEventListener("gamepadconnected", (e) => {
+  gamepadIndex = e.gamepad.index;
+});
+
+window.addEventListener("gamepaddisconnected", () => {
+  gamepadIndex = null;
+});
+function updateGamepad() {
+  const gp = navigator.getGamepads()[gamepadIndex];
+  if (!gp) return;
+
+  // --- RIGHT STICK LOOK ---
+const lookX = deadzone(gp.axes[2]);
+const lookY = deadzone(gp.axes[3]);
+
+  cam.yaw   -= lookX * 0.05;
+  cam.pitch -= lookY * 0.05;
+
+  cam.pitch = Math.max(-Math.PI/2 + 0.05,
+               Math.min(Math.PI/2 - 0.05, cam.pitch));
+const up = gp.buttons[12]?.pressed;
+const down = gp.buttons[13]?.pressed;
+const moveY = deadzone(gp.axes[1]); // left stick vertical
+
+  if (moveY !== 0) {
+    const f = getForwardVector();
+
+    // push forward/back (invert so up = forward like most games)
+    vel.x += f.x * ACCEL * -moveY;
+    vel.y += f.y * ACCEL * -moveY;
+    vel.z += f.z * ACCEL * -moveY;
+  }
+// FOV change (drift-safe: only triggers on press, not hold spam)
+if (!gp.__prevUp) gp.__prevUp = false;
+if (!gp.__prevDown) gp.__prevDown = false;
+
+if (up && !gp.__prevUp) {
+  fov = Math.max(FOV_MIN, fov - 2);
+  updateProjection();
+}
+if (down && !gp.__prevDown) {
+  fov = Math.min(FOV_MAX, fov + 2);
+  updateProjection();
+}
+
+gp.__prevUp = up;
+gp.__prevDown = down;
+  // --- A BUTTON = MOVE FORWARD ---
+  const A = gp.buttons[0]?.pressed;
+  if (A) {
+    const f = getForwardVector();
+    vel.x += f.x * ACCEL;
+    vel.y += f.y * ACCEL;
+    vel.z += f.z * ACCEL;
+  }
+
+  // --- RIGHT TRIGGER = DEFORM ---
+  const rt = gp.buttons[7]?.value || 0;
+
+  if (rt > 0.6) {
+    const forward = getForwardVector();
+    const dist = 15;
+
+    const cx = cam.x + forward.x * dist;
+    const cz = cam.z + forward.z * dist;
+
+    addDeformation(cx, cz, 10, 3 * rt);
+  }
+}
+
+    function updateCameraMovement() {
+if (!started) return;
+      const forward = getForwardVector();
+
+      if (keys["w"] || keys[" "]) {
+  vel.x += forward.x * ACCEL;
+  vel.y += forward.y * ACCEL;
+  vel.z += forward.z * ACCEL;
+}
+
+if (keys["s"] || keys["S"]) {
+  vel.x -= forward.x * ACCEL;
+  vel.y -= forward.y * ACCEL;
+  vel.z -= forward.z * ACCEL;
+}
+
+      // Apply velocity
+      cam.x += vel.x;
+      cam.y += vel.y;
+      cam.z += vel.z;
+
+      // Damping
+      vel.x *= DAMPING;
+      vel.y *= DAMPING;
+      vel.z *= DAMPING;
+    }
+
+    // --- PERLIN NOISE ---
+
+    const PERM_SIZE = 256;
+    const perm = new Uint8Array(PERM_SIZE * 2);
+    (function initPerm() {
+      const p = [];
+      for (let i = 0; i < PERM_SIZE; i++) p[i] = i;
+      for (let i = PERM_SIZE - 1; i > 0; i--) {
+        const j = (Math.random() * (i + 1)) | 0;
+        [p[i], p[j]] = [p[j], p[i]];
+      }
+      for (let i = 0; i < PERM_SIZE * 2; i++) {
+        perm[i] = p[i & (PERM_SIZE - 1)];
+      }
+    })();
+
+    function fade(t) {
+      return t * t * t * (t * (t * 6 - 15) + 10);
+    }
+    function lerp(a, b, t) {
+      return a + t * (b - a);
+    }
+    function grad(hash, x, y) {
+      const h = hash & 3;
+      const u = h < 2 ? x : y;
+      const v = h < 2 ? y : x;
+      return ((h & 1) ? -u : u) + ((h & 2) ? -2.0 * v : 2.0 * v);
+    }
+
+    function perlin2(x, y) {
+      const X = Math.floor(x) & 255;
+      const Y = Math.floor(y) & 255;
+
+      const xf = x - Math.floor(x);
+      const yf = y - Math.floor(y);
+
+      const u = fade(xf);
+      const v = fade(yf);
+
+      const aa = perm[X + perm[Y]];
+      const ab = perm[X + perm[Y + 1]];
+      const ba = perm[X + 1 + perm[Y]];
+      const bb = perm[X + 1 + perm[Y + 1]];
+
+      const x1 = lerp(grad(aa, xf, yf), grad(ba, xf - 1, yf), u);
+      const x2 = lerp(grad(ab, xf, yf - 1), grad(bb, xf - 1, yf - 1), u);
+      return lerp(x1, x2, v) * 0.5;
+    }
+
+    function fbm(x, y) {
+      let total = 0;
+      let amp = 1;
+      let freq = 1;
+      let max = 0;
+      for (let i = 0; i < 4; i++) {
+        total += perlin2(x * freq, y * freq) * amp;
+        max += amp;
+        amp *= 0.5;
+        freq *= 2;
+      }
+      return total / max;
+    }
+
+    // --- TERRAIN GRID ---
+
+    const GRID_W = 80;
+    const GRID_H = 80;
+    const CELL_SIZE = 1.0;
+    const HEIGHT_SCALE = 6.0;
+    const NOISE_SCALE = 0.08;
+
+    function applyCamera(v) {
+      let px = v.x - cam.x;
+      let py = v.y - cam.y;
+      let pz = v.z - cam.z;
+
+      const cy = Math.cos(cam.yaw);
+      const sy = Math.sin(cam.yaw);
+      let dx = px * cy + pz * sy;
+      let dz = -px * sy + pz * cy;
+
+      const cp = Math.cos(cam.pitch);
+      const sp = Math.sin(cam.pitch);
+      let dy = py * cp - dz * sp;
+      dz = py * sp + dz * cp;
+
+      return { x: dx, y: dy, z: dz };
+    }
+
+    function project(v) {
+      const z = v.z;
+      if (z <= zNear) return null;
+
+      const xNdc = (v.x * projScale * aspect) / z;
+      const yNdc = (v.y * projScale) / z;
+
+      const xScreen = (xNdc + 1) * 0.5 * W;
+      const yScreen = (1 - yNdc) * 0.5 * H;
+
+      return { x: xScreen, y: yScreen, z };
+    }
+
+    function clear() {
+      ctx.clearRect(0, 0, W, H);
+      ctx.fillStyle = "#000";
+      ctx.fillRect(0, 0, W, H);
+    }
+
+    function drawTerrainWireframe() {
+      const verts = [];
+      for (let z = 0; z <= GRID_H; z++) {
+        const row = [];
+        for (let x = 0; x <= GRID_W; x++) {
+          const worldX = (x - GRID_W / 2) * CELL_SIZE + cam.x;
+          const worldZ = (z - GRID_H / 2) * CELL_SIZE + cam.z;
+
+          const base = fbm(worldX * NOISE_SCALE, worldZ * NOISE_SCALE) * HEIGHT_SCALE;
+
+          const ix = Math.round(worldX / CELL_SIZE);
+          const iz = Math.round(worldZ / CELL_SIZE);
+          const key = ix + "," + iz;
+          const deform = deformations.get(key) || 0;
+
+          const h = base + deform;
+
+          row.push({ x: worldX, y: h, z: worldZ });
+        }
+        verts.push(row);
+      }
+
+      const proj = [];
+      for (let z = 0; z <= GRID_H; z++) {
+        const row = [];
+        for (let x = 0; x <= GRID_W; x++) {
+          const vCam = applyCamera(verts[z][x]);
+          row.push(project(vCam));
+        }
+        proj.push(row);
+      }
+
+      ctx.strokeStyle = "#0f8";
+      ctx.lineWidth = 1;
+
+      ctx.beginPath();
+      // Rows
+      for (let z = 0; z <= GRID_H; z++) {
+        for (let x = 0; x < GRID_W; x++) {
+          const v1 = proj[z][x];
+          const v2 = proj[z][x + 1];
+          if (!v1 || !v2) continue;
+          ctx.moveTo(v1.x, v1.y);
+          ctx.lineTo(v2.x, v2.y);
+        }
+      }
+      // Columns
+      for (let x = 0; x <= GRID_W; x++) {
+        for (let z = 0; z < GRID_H; z++) {
+          const v1 = proj[z][x];
+          const v2 = proj[z + 1][x];
+          if (!v1 || !v2) continue;
+          ctx.moveTo(v1.x, v1.y);
+          ctx.lineTo(v2.x, v2.y);
+        }
+      }
+      ctx.stroke();
+    }
+
+    function loop() {
+      updateGamepad();
+      updateCameraMovement();
+      clear();
+      drawTerrainWireframe();
+      requestAnimationFrame(loop);
+    }
+
+    loop();
+  </script>
+</body>
+</html>

@@ -1,0 +1,132 @@
+/life/* Folder
+  /life/full.html , /life/full text/html
+/writing/* Folder
+  /writing/peter.html , /writing/peter text/html
+/pillow/* Folder
+  /black/* Folder
+  /blue/* Folder
+    /pillow/blue/1.gif image/gif
+    /pillow/blue/2.gif image/gif
+    /pillow/blue/3.gif image/gif
+    /pillow/blue/4.gif image/gif
+    /pillow/blue/5.gif image/gif
+    /pillow/blue/6.gif image/gif
+    /pillow/blue/7.gif image/gif
+    /pillow/blue/8.gif image/gif
+    /pillow/blue/9.gif image/gif
+    /pillow/blue/blue.png image/png
+    /pillow/blue/slap.html , /pillow/blue/slap text/html
+  /white/* Folder
+/3m20.html , /3m20 text/html
+/a9corner.png image/png
+/a9logo.png image/png
+/a9RING.png image/png
+/blissa9.png image/png
+/bluepeel.png image/png
+/brickwall.png image/png
+/bruisedpeel.png image/png
+/burgersoup.txt text/plain
+/button.gif image/gif
+/cast.gif image/gif
+/castline.png image/png
+/caught.png image/png
+/chromepeel.png image/png
+/clock.html , /clock text/html
+/devjourney.html , /devjourney text/html
+/doer.html , /doer text/html
+/eras.html , /eras text/html
+/fisher.css text/css
+/fisher.html , /fisher text/html
+/fisher.js text/javascript
+/FisherCartridge.png image/png
+/forum.html , /forum text/html
+/framechain.html , /framechain text/html
+/gameid1.json application/json
+/gameid2.json application/json
+/gameid3.json application/json
+/gameid4.json application/json
+/GenericFunGame.html , /GenericFunGame text/html
+/gex.html , /gex text/html
+/gex.png image/png
+/gleefulpebble.gif image/gif
+/glider.png image/png
+/grassgate.txt text/plain
+/gulijani.pdf application/pdf
+/HoldOut.pdf application/pdf
+/hsquare_88x31.gif image/gif
+/html.html , /html text/html
+/hypertype.html , /hypertype text/html
+/idle.png image/png
+/index.html , /index , / text/html
+/Jellio.png image/png
+/kairo.js text/javascript
+/lagger.html , /lagger text/html
+/lev1.png image/png
+/lev2.png image/png
+/lev3.png image/png
+/lilguy.html , /lilguy text/html
+/links.html , /links text/html
+/ls.js text/javascript
+/mandel.html , /mandel text/html
+/maybenotpossible.html , /maybenotpossible text/html
+/mazeout.html , /mazeout text/html
+/mike.html , /mike text/html
+/mike.obj model/obj
+/miss.png image/png
+/mkw.png image/png
+/moneypeel.png image/png
+/music.html , /music text/html
+/neocities.png image/png
+/Neocraft guide.pdf application/pdf
+/NeoCraft.gif image/gif
+/neog-card.png image/png
+/neoground.html , /neoground text/html
+/neoground.png image/png
+/neogroundedit.html , /neogroundedit text/html
+/netchat.html , /netchat text/html
+/netchat.png image/png
+/not_found.html , /not_found text/html
+/oiry.html , /oiry text/html
+/peelwheel.html , /peelwheel text/html
+/pillow.html , /pillow text/html
+/play.html , /play text/html
+/playfolder.png image/png
+/playneoground.html , /playneoground text/html
+/presspeel.png image/png
+/projects.html , /projects text/html
+/putter.html , /putter text/html
+/pxy.html , /pxy text/html
+/quiz.html , /quiz text/html
+/reference.html , /reference text/html
+/remaptcha-protected.html , /remaptcha-protected text/html
+/retml.html , /retml text/html
+/ribozone.gif image/gif
+/Roads.html , /Roads text/html
+/robots.txt text/plain
+/rss.png image/png
+/rss.xml application/xml
+/rssub.html , /rssub text/html
+/sitemap.txt text/plain
+/sitemap.xml application/xml
+/squirtturtle.jpg image/jpeg
+/style.css text/css
+/surface.png image/png
+/test.html , /test text/html
+/timing.gif image/gif
+/udrr.gif image/gif
+/underscore.html , /underscore text/html
+/util-s.png image/png
+/utils.html , /utils text/html
+/version.html , /version text/html
+/version.png image/png
+/vfs-cartridge.png image/png
+/vfs.html , /vfs text/html
+/vids.html , /vids text/html
+/webring.html , /webring text/html
+/wireplay-card.png image/png
+/wireplay.gif image/gif
+/wireplay.html , /wireplay text/html
+/y3uHI3.gif image/gif
+/yaps-folder.png image/png
+/yaps.html , /yaps text/html
+/yellowpeel.png image/png

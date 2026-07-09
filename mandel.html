@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport"
+      content="width=device-width,initial-scale=1,user-scalable=no">
+<title>FractalGuessr</title>
+
+<style>
+html,body{
+  margin:0;
+  width:100%;
+  height:100%;
+  overflow:hidden;
+  background:black;
+  color:white;
+  font-family:monospace;
+  touch-action:none;
+}
+
+#view{
+  width:100%;
+  height:100%;
+  display:block;
+}
+
+#mini{
+  position:fixed;
+  right:10px;
+  bottom:10px;
+  width:180px;
+  height:180px;
+  border:2px solid white;
+  image-rendering:pixelated;
+}
+
+#ui{
+  position:fixed;
+  top:10px;
+  left:10px;
+  background:rgba(0,0,0,.6);
+  padding:10px;
+  border-radius:10px;
+}
+
+button{
+  margin-top:6px;
+}
+</style>
+</head>
+<body>
+
+<div id="ui">
+  <div id="score">Find where you are!</div>
+  <button onclick="newRound()">New Round</button>
+  <button onclick="submitGuess()">Submit Guess</button>
+</div>
+
+<canvas id="view"></canvas>
+<canvas id="mini" width="128" height="128"></canvas>
+
+<script>
+const canvas = document.getElementById("view");
+const ctx = canvas.getContext("2d");
+
+const mini = document.getElementById("mini");
+const mctx = mini.getContext("2d");
+
+function resize(){
+  canvas.width = innerWidth;
+  canvas.height = innerHeight;
+}
+addEventListener("resize", resize);
+resize();
+
+let cam = {
+  x: -0.75,
+  y: 0,
+  zoom: 0.002
+};
+
+let target = {
+  x: 0,
+  y: 0,
+  zoom: 0.002
+};
+
+let guess = null;
+
+// ---------- MANDELBROT ----------
+function mandel(cx, cy, max=80){
+  let zx = 0;
+  let zy = 0;
+
+  let i = 0;
+
+  while(zx*zx + zy*zy <= 4 && i < max){
+    const nx = zx*zx - zy*zy + cx;
+    const ny = 2*zx*zy + cy;
+    zx = nx;
+    zy = ny;
+    i++;
+  }
+
+  return i;
+}
+
+// ---------- MAIN VIEW ----------
+function drawMain(){
+  const img =
+    ctx.createImageData(
+      canvas.width,
+      canvas.height
+    );
+
+  const scale =
+    cam.zoom /
+    Math.min(canvas.width,
+             canvas.height);
+
+  for(let py=0; py<canvas.height; py++){
+    for(let px=0; px<canvas.width; px++){
+
+      const x =
+        cam.x +
+        (px - canvas.width/2)
+        * scale;
+
+      const y =
+        cam.y +
+        (py - canvas.height/2)
+        * scale;
+
+      const i =
+        mandel(x,y,100);
+
+      const c =
+        i === 100 ? 255 : 0;
+
+      const idx =
+        (px + py*canvas.width)*4;
+
+      img.data[idx] = c;
+      img.data[idx+1] = c;
+      img.data[idx+2] = c;
+      img.data[idx+3] = 255;
+    }
+  }
+
+  ctx.putImageData(img,0,0);
+}
+
+// ---------- MINIMAP ----------
+function drawMini(){
+
+  const img =
+    mctx.createImageData(128,128);
+
+  for(let py=0; py<128; py++){
+    for(let px=0; px<128; px++){
+
+      const x =
+        px/128*3.5 - 2.5;
+
+      const y =
+        py/128*2 - 1;
+
+      const i =
+        mandel(x,y,40);
+
+      const c =
+        i === 40 ? 255 : 0;
+
+      const idx =
+        (px + py*128)*4;
+
+      img.data[idx] = c;
+      img.data[idx+1] = c;
+      img.data[idx+2] = c;
+      img.data[idx+3] = 255;
+    }
+  }
+
+  mctx.putImageData(img,0,0);
+
+  if(guess){
+    mctx.fillStyle = "red";
+    mctx.beginPath();
+    mctx.arc(
+      guess.x,
+      guess.y,
+      4,
+      0,
+      Math.PI*2
+    );
+    mctx.fill();
+  }
+}
+
+// ---------- SAFE SPAWN ----------
+function goodLocation(x,y,zoom){
+
+  let inside = 0;
+  const N = 24;
+
+  for(let py=0; py<N; py++){
+    for(let px=0; px<N; px++){
+
+      const xx =
+        x + (px/N-.5)*zoom;
+
+      const yy =
+        y + (py/N-.5)*zoom;
+
+      if(mandel(xx,yy,60) === 60)
+        inside++;
+    }
+  }
+
+  const p =
+    inside/(N*N);
+
+  return p > 0.1 && p < 0.9;
+}
+
+// ---------- NEW ROUND ----------
+function newRound(){
+
+  do{
+    target.x =
+      Math.random()*3.5 - 2.5;
+
+    target.y =
+      Math.random()*2 - 1;
+
+    target.zoom =
+      Math.pow(
+        10,
+        -(Math.random()*4 + 2)
+      );
+
+  }while(
+    !goodLocation(
+      target.x,
+      target.y,
+      target.zoom
+    )
+  );
+
+  cam.x = target.x;
+  cam.y = target.y;
+  cam.zoom = target.zoom;
+
+  guess = null;
+
+  drawMain();
+  drawMini();
+
+  document.getElementById("score")
+    .textContent =
+    "Find where you are!";
+}
+
+// ---------- GUESS ----------
+mini.onclick = e => {
+
+  const r =
+    mini.getBoundingClientRect();
+
+  guess = {
+    x: e.clientX - r.left,
+    y: e.clientY - r.top
+  };
+
+  drawMini();
+};
+
+function submitGuess(){
+
+  if(!guess){
+    alert("Place a pin!");
+    return;
+  }
+
+  const gx =
+    guess.x/128*3.5 - 2.5;
+
+  const gy =
+    guess.y/128*2 - 1;
+
+  const d =
+    Math.hypot(
+      gx-target.x,
+      gy-target.y
+    );
+
+  const score =
+    Math.max(
+      0,
+      Math.round(
+        5000 - d*3000
+      )
+    );
+
+  document.getElementById("score")
+    .textContent =
+    "Score: " + score;
+}
+
+// ---------- PAN ----------
+let dragging = false;
+let lx = 0;
+let ly = 0;
+
+canvas.onpointerdown = e=>{
+  dragging = true;
+  lx = e.clientX;
+  ly = e.clientY;
+};
+
+window.onpointerup = ()=>{
+  dragging = false;
+};
+
+window.onpointermove = e=>{
+  if(!dragging) return;
+
+  const scale =
+    cam.zoom /
+    Math.min(
+      canvas.width,
+      canvas.height
+    );
+
+  cam.x -=
+    (e.clientX-lx)*scale;
+
+  cam.y -=
+    (e.clientY-ly)*scale;
+
+  lx = e.clientX;
+  ly = e.clientY;
+
+  drawMain();
+};
+
+// ---------- ZOOM ----------
+canvas.onwheel = e=>{
+  e.preventDefault();
+
+  cam.zoom *=
+    e.deltaY > 0
+      ? 1.2
+      : 0.8;
+
+  drawMain();
+};
+
+// ---------- PINCH ----------
+let lastDist = null;
+
+canvas.addEventListener(
+"touchmove", e=>{
+
+  if(e.touches.length !== 2){
+    lastDist = null;
+    return;
+  }
+
+  const dx =
+    e.touches[0].clientX -
+    e.touches[1].clientX;
+
+  const dy =
+    e.touches[0].clientY -
+    e.touches[1].clientY;
+
+  const d =
+    Math.hypot(dx,dy);
+
+  if(lastDist){
+    cam.zoom *=
+      lastDist/d;
+
+    drawMain();
+  }
+
+  lastDist = d;
+});
+
+// ---------- START ----------
+drawMini();
+newRound();
+</script>
+</body>
+</html>

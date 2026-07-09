@@ -1,0 +1,60 @@
+<!doctype html>
+<title>My Dev Journey</title>
+<style>
+body {
+    background-color: #405D64;
+}
+body {
+    height: 100%;
+    margin: 0;
+}
+body {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    font-family: monospace;
+    color: #D2DFEC;
+}
+#text {
+    white-space: pre-line;
+    text-align: center;
+}
+button {
+    background-color: #d2dfec;
+    color: #405d64;
+    border: none;
+}
+</style>
+
+<body>
+<p id="text"></p>
+<div style="display: flex; flex-wrap: nowrap; border: 2px solid white;">
+    <button onclick="left()">&lt;</button>
+    <button onclick="right()">&gt;</button>
+</div>
+<script>
+let txt = document.getElementById("text");
+let journey = [
+    "I started here, when I was 4. \nI used botley to successfully make my first program!", 
+    "Then came Scratch.\n When I was 5, I learned Scratch and made a few...\n games, if you can call it that.", 
+    "Python.\n My first text-based lang! From 7 yo.", 
+    "HTML came next.\n I was in third grade (9 years old), and that was the easiest choice I have made.\n *Css and JS came shortly after.", 
+    "Current me:\n I am 12 years old and proficient in more than 5 languages.\n here is a list of 5:\n Scratch, HTML/Css/JS, Lua, ASM and batch"
+];
+let idx = 0;
+txt.textContent = journey[idx];
+
+function left() {
+    idx = (idx - 1 + journey.length) % journey.length;
+    txt.textContent = journey[idx];
+}
+
+function right() {
+    idx = (idx + 1) % journey.length;
+    txt.textContent = journey[idx];
+}
+</script>
+<p style="color: rgba(210, 223, 236, 0.19);">Made with HSquare in mind :P</p>
+</body>
+

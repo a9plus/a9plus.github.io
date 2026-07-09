@@ -1,0 +1,436 @@
+<!DOCTYPE HTML>
+<link rel="icon" type="image/png" href="/neoground.png">
+<title>NeoGround BETA</title>
+<style>
+html, body, * {
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+}
+canvas {
+    display: block;
+    margin: 0;
+}</style>
+<canvas id="gcanvas"></canvas>
+<script>
+let vars = {}; // 💀 DO NOT LET THIS DIE 💀
+//they should make an adhd emoji
+function safeWorldFallback() {
+    return [
+        { type: "rect", x: 0, y: 0, w: 40, h: 40, color: "#ff0000" }
+    ];
+}
+//the ?g= json world part
+async function loadWorld() {
+    const params = new URLSearchParams(location.search);
+
+    const id = params.get("id");
+    const g = params.get("g");
+
+    try {
+
+        // 🌐 (web emoji hehehehee) HOSTED WORLD MODE (?id=)
+        if (id) {
+            const url = `gameid${id}.json`;
+            const res = await fetch(url);
+            world = await res.json();
+            return;
+        }
+
+        // 📦 INLINE WORLD MODE (?g= base64 JSON)
+        if (g) {
+            world = JSON.parse(atob(g));
+            return;
+        }
+
+        // 🧱🧱🧱🧱🧱🧱🧱🧱🧱🧱🧱🧱🧱🧱🧱🧱🧱🧱🧱 FALLBACK WORLD
+        world = getDefaultWorld();
+
+    } catch {
+        world = getDefaultWorld();
+    }
+}
+
+//do comments work?
+//yes
+//im initing the canvas
+const canvas = document.getElementById("gcanvas");
+const ctx = canvas.getContext("2d");
+
+function resize() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+}
+
+resize();
+window.addEventListener("resize", resize);
+
+function getDefaultWorld() {
+    return [
+        {
+            type: "rect",
+            x: 300,
+            y: 200,
+            w: 150,
+            h: 40,
+            color: "#ff0000"
+        },
+        {
+            type: "rect",
+            x: 40,
+            y: 400,
+            w: 200,
+            h: 50,
+            color: "#00ff00"
+        }
+    ];
+}
+
+let keys = {};
+//self explanitory vars. if you didnt know, x and y are the player's x and y
+const playerspeed = 3;
+let x = 50;
+let y = 50;
+
+//im detecting keys
+window.addEventListener('keydown', function(e) {
+  keys[e.key] = true;
+  });
+window.addEventListener('keyup', function(e) {
+  keys[e.key] = false;
+  });
+ function willCollide(nx, ny) {
+    for (let obj of world) {
+      if (obj.type === "trigger") continue;
+        if (obj.type === "text") continue;
+        // default collisions to true if missing bc im not adding collision to every object thats pain
+        if (obj.collisions === false) continue;
+
+        // RECTANGLE is EZ TO CALULATE I  FORGOR HOW TO SPELLLLL but yeah basic box box collision thing
+        if (obj.type === "rect") {
+            if (
+                nx < obj.x + obj.w &&
+                nx + 40 > obj.x &&
+                ny < obj.y + obj.h &&
+                ny + 40 > obj.y
+            ) {
+                return true;
+            }
+        }
+
+        if (obj.type === "circle") {
+
+            let px = nx + 20;
+            let py = ny + 20;
+
+            // no more player corners go inside circles same with elippseleltiluuwg
+            let dx = px - obj.x;
+            let dy = py - obj.y;
+
+            let distSq = dx * dx + dy * dy;
+            let radius = obj.r + 20;
+
+            if (distSq < radius * radius) {
+                return true;
+            }
+        }
+
+        // ELLIPSILIPSILIPSILIPSE
+        if (obj.type === "ellipse") {
+
+            let px = nx + 20;
+            let py = ny + 20;
+
+            let dx = (px - obj.x) / (obj.rx + 20);
+            let dy = (py - obj.y) / (obj.ry + 20);
+
+            if ((dx * dx + dy * dy) < 1) {
+                return true;
+            }
+        }
+    }
+
+    return false;
+}
+function safeEval(expr, vars, worldMap) {
+//this eval is safe so safe infact that
+    try {
+
+        let world = Object.fromEntries(
+            worldMap.map(o => [o.id, o])
+        );
+
+        return new Function(
+            "vars",
+            "world",
+            `
+            const v = vars || Object.create(null);
+            const w = world || {};
+
+            with(v){
+                with(w){
+                    return (${expr});
+                }
+            }
+            `
+        )(vars, world);
+
+    } catch (e) {
+
+        console.log("expression failed:", expr, e);
+        return null;
+    }
+}
+function runEvent(event) {
+
+    if (!event) return;
+
+    // 💡 lightbulb oooooh lightbulb libght bulb imma use the emoji for everything hhere. MULTIACTION THINGY IS HERE TABF5 IF YOU ARE READING THIS IDK WHY IM MENTALLY INSANE RN
+    if (Array.isArray(event)) {
+        for (let e of event) runEvent(e);
+        return;
+    }
+
+    // 💡 CONDITIONal thiNG
+    if (event.eventif) {
+
+        let ok = safeEval(event.eventif, vars, world);
+
+        if (!ok) return;
+    }
+
+    // 💡 VARIABLLYSSSSSS
+    if (event.var) {
+
+        for (let key in event.var) {
+
+            let value = event.var[key];
+
+            if (typeof value === "string") {
+                value = safeEval(value, vars, world);
+            }
+
+            vars[key] = value;
+        }
+    }
+
+    // 💡 OBJECT THING TARGET
+    if (event.id) {
+
+        let targets = world.filter(o => o.id === event.id);
+
+        for (let obj of targets) {
+
+            for (let key in event) {
+
+                if (
+                    key === "id" ||
+                    key === "var" ||
+                    key === "eventif"
+                ) continue;
+
+                let value = event[key];
+
+                if (typeof value === "string") {
+                    value = safeEval(value, vars, world);
+                }
+
+                obj[key] = value;
+            }
+        }
+    }
+}function onTriggerEnter(trigger) {
+
+    if (trigger.undo) {
+
+        trigger.savedState = world.map(obj => ({
+            id: obj.id,
+            snapshot: { ...obj }
+        }));
+
+    }
+
+    runEvent(trigger.action || trigger.event);
+}function onTriggerExit(trigger) {
+
+    if (!trigger.undo) return;
+    if (!trigger.savedState) return;
+
+    for (let saved of trigger.savedState) {
+
+        let obj = world.find(o => o.id === saved.id);
+
+        if (obj) {
+            Object.assign(obj, saved.snapshot);
+        }
+    }
+
+    trigger.savedState = null;
+}
+let camX = 0;
+let camY = 0;
+    //i should prob indent the stuff inside gameloop()
+    function gameloop() {
+if (!world) {
+        requestAnimationFrame(gameloop);
+        return;
+    }
+camX = x - canvas.width / 2 + 20;
+camY = y - canvas.height / 2 + 20;
+ctx.fillStyle = '#38B6FF'
+ctx.fillRect(0,0,canvas.width,canvas.height)
+if (keys['d']) {
+    let nx = x + playerspeed;
+    if (!willCollide(nx, y)) x = nx;
+}
+
+if (keys['a']) {
+    let nx = x - playerspeed;
+    if (!willCollide(nx, y)) x = nx;
+}
+
+if (keys['w']) {
+    let ny = y - playerspeed;
+    if (!willCollide(x, ny)) y = ny;
+}
+
+if (keys['s']) {
+    let ny = y + playerspeed;
+    if (!willCollide(x, ny)) y = ny;
+}
+ctx.fillStyle = '#FEFF00'
+ctx.fillRect(
+  canvas.width / 2 - 20,
+  canvas.height / 2 - 20,
+  40,
+  40
+);
+// TRIGGER TIME YAYAYAYAYAY
+for (let obj of world) {
+
+    if (obj.type !== "trigger") continue;
+
+    if (obj.playerInside === undefined)
+        obj.playerInside = false;
+
+    let touching =
+        x < obj.x + obj.w &&
+        x + 40 > obj.x &&
+        y < obj.y + obj.h &&
+        y + 40 > obj.y;
+
+    try {
+
+        // just stepped on
+        if (touching && !obj.playerInside) {
+            onTriggerEnter(obj);
+        }
+
+        // just stepped off
+        if (!touching && obj.playerInside) {
+            onTriggerExit(obj);
+        }
+
+    } catch (e) {
+
+        console.log(
+            "TRIGGER CRASH:",
+            obj,
+            e
+        );
+    }
+
+    obj.playerInside = touching;
+}
+//rectangle and circle AND ellipse lesgoooooo
+for (let obj of world) {
+
+    // RECTANGLE is EZ TO CALULATE I  FORGOR HOW TO SPELLLLL but yeah basic box box collision thing
+    if (obj.type === "rect") {
+        ctx.fillStyle = obj.color;
+        ctx.fillRect(obj.x - camX, obj.y - camY, obj.w, obj.h);
+    }
+
+    if (obj.type === "circle") {
+        ctx.fillStyle = obj.color;
+        ctx.beginPath();
+        ctx.arc(obj.x - camX, obj.y - camY, obj.r, 0, Math.PI * 2);
+        ctx.fill();
+    }
+
+    if (obj.type === "ellipse") {
+        ctx.fillStyle = obj.color;
+        ctx.beginPath();
+        ctx.ellipse(
+            obj.x - camX,
+            obj.y - camY,
+            obj.rx,
+            obj.ry,
+            0,
+            0,
+            Math.PI * 2
+        );
+        ctx.fill();
+    }
+
+    if (obj.type === "text") {
+
+        let size = obj.size || 16;
+
+        ctx.font = size + "px Arial";
+        ctx.textAlign = "left";
+        ctx.textBaseline = "top";
+
+        // outline first (so it pops over EVERYTHING)
+        ctx.strokeStyle = "black";
+        ctx.lineWidth = 4;
+        ctx.strokeText(
+            obj.text,
+            obj.x - camX,
+            obj.y - camY
+        );
+
+        // fill text
+        ctx.fillStyle = obj.color || "#ffffff";
+        ctx.fillText(
+            obj.text,
+            obj.x - camX,
+            obj.y - camY
+        );
+    }
+
+    // TRIGGERS ARE NOW VISIBLE (no more magic invis nonsense 🪄)
+    if (obj.type === "trigger") {
+
+        ctx.fillStyle = obj.color || "#ff00ff";
+        ctx.fillRect(
+            obj.x - camX,
+            obj.y - camY,
+            obj.w,
+            obj.h
+        );
+
+        // little label so you can see it
+        ctx.fillStyle = "#000";
+        ctx.font = "12px Arial";
+        ctx.fillText(
+            obj.id || "trigger",
+            obj.x - camX,
+            obj.y - camY
+        );
+    }
+}
+//the y's are flipped, i should fix now
+//fixed!
+//same for x
+//added elliptical collision yayayayayayay
+
+requestAnimationFrame(gameloop);
+}
+
+//updating
+(async function start() {
+    await loadWorld();
+    gameloop();
+})();
+</script>

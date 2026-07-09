@@ -1,0 +1,158 @@
+<!DOCTYPE HTML>
+<title>NEOGROUND EDITOR</title>
+<img src="neoground.png" style="width:80px;height:80px;">
+<div style="display: flex; gap: 20px;">
+  <div>
+  <h1>SCROLL DOWN FOR THE EASYBUILD EDITOR WHY AM I USING ALL CAPS IDK</h1>
+  <a href="https://forms.office.com/r/YK6v81L0EF">SUBMIT YOUR GAME</a>
+    <canvas id="previewcanvas" width="800" height="800" style="border: 1px solid #ccc;"></canvas>
+    <h1>NeoGround Editor - ill prob rebrand to studio but idk</h1>
+    <p>you have to fill out the form first</p>
+
+    <input type="text" placeholder="xpos" id="x">
+    <input type="text" placeholder="ypos" id="y">
+    <input type="text" placeholder="width / rx / radius" id="w_rx_r">
+    <input type="text" placeholder="height / ry (skip for circle)" id="h_ry">
+    <input type="text" placeholder="color (e.g. #e74c3c)" id="color">
+
+    <button onclick="addrect();">ADD RECTANGLE</button>
+    <button onclick="addellipse();">ADD ELLIPSE</button>
+    <button onclick="addcircle();">ADD CIRCLE</button>
+  </div>
+
+  <div>
+    <h3>JSON Data Editor</h3>
+    <textarea id="jsoneditor" style="width: 400px; height: 600px; font-family: monospace;"></textarea>
+    <br>
+    <button onclick="applyJSON();">APPLY JSON CHANGES</button>
+  </div>
+</div>
+
+<script>
+const canvas = document.getElementById("previewcanvas");
+const ctx = canvas.getContext("2d");
+const jsonTextArea = document.getElementById("jsoneditor");
+
+let levelData = [];
+
+function updateJSONDisplay() {
+  jsonTextArea.value = JSON.stringify(levelData, null, 2);
+}
+
+function applyJSON() {
+  try {
+    const parsed = JSON.parse(jsonTextArea.value);
+    if (Array.isArray(parsed)) {
+      levelData = parsed;
+    } else {
+      alert("JSON must be an array [ ... ]");
+    }
+  } catch (e) {
+    alert("Invalid JSON format: " + e.message);
+  }
+}
+
+function addrect() {
+  const xVal = document.getElementById("x").value;
+  const yVal = document.getElementById("y").value;
+  const wVal = document.getElementById("w_rx_r").value;
+  const hVal = document.getElementById("h_ry").value;
+  const colorVal = document.getElementById("color").value || "#2c3e50";
+
+  const newRect = {
+    type: "rect",
+    x: Number(xVal),
+    y: Number(yVal),
+    w: Number(wVal),
+    h: Number(hVal),
+    color: colorVal
+  };
+
+  levelData.push(newRect);
+  updateJSONDisplay();
+  clearInputs();
+}
+
+function addellipse() {
+  const xVal = document.getElementById("x").value;
+  const yVal = document.getElementById("y").value;
+  const rxVal = document.getElementById("w_rx_r").value;
+  const ryVal = document.getElementById("h_ry").value;
+  const colorVal = document.getElementById("color").value || "#9b59b6";
+
+  const newEllipse = {
+    type: "ellipse",
+    x: Number(xVal),
+    y: Number(yVal),
+    rx: Number(rxVal),
+    ry: Number(ryVal),
+    color: colorVal
+  };
+
+  levelData.push(newEllipse);
+  updateJSONDisplay();
+  clearInputs();
+}
+
+function addcircle() {
+  const xVal = document.getElementById("x").value;
+  const yVal = document.getElementById("y").value;
+  const rVal = document.getElementById("w_rx_r").value;
+  const colorVal = document.getElementById("color").value || "#f1c40f";
+
+  const newCircle = {
+    type: "circle",
+    x: Number(xVal),
+    y: Number(yVal),
+    r: Number(rVal),
+    color: colorVal
+  };
+
+  levelData.push(newCircle);
+  updateJSONDisplay();
+  clearInputs();
+}
+
+function clearInputs() {
+  document.getElementById("x").value = "";
+  document.getElementById("y").value = "";
+  document.getElementById("w_rx_r").value = "";
+  document.getElementById("h_ry").value = "";
+}
+
+const WORLD_SIZE = 2000;
+const VIEW_SIZE = 800;
+const SCALE = VIEW_SIZE / WORLD_SIZE;
+
+function render() {
+  ctx.clearRect(0, 0, VIEW_SIZE, VIEW_SIZE);
+  ctx.save();
+  ctx.scale(SCALE, SCALE);
+  
+  const len = levelData.length;
+  for (let i = 0; i < len; i++) {
+    const obj = levelData[i];
+    ctx.fillStyle = obj.color || "#fff";
+    if (obj.type === "rect") {
+      ctx.fillRect(obj.x, obj.y, obj.w, obj.h);
+    } else if (obj.type === "ellipse") {
+      ctx.beginPath();
+      ctx.ellipse(obj.x, obj.y, obj.rx, obj.ry, 0, 0, Math.PI * 2);
+      ctx.fill();
+    } else if (obj.type === "circle") {
+      ctx.beginPath();
+      ctx.arc(obj.x, obj.y, obj.r, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+  ctx.restore();
+}
+
+function loop() {
+  render();
+  requestAnimationFrame(loop);
+}
+
+updateJSONDisplay();
+loop();
+</script>

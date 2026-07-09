@@ -1,0 +1,82 @@
+HI!!!!! TO DOWNLOAD GRASSGATE, FOLLOW THIS GUIDE
+
+1. go to chrome://extensions or your extension manager
+
+2. turn on developer mode
+
+3. go to rapidtables.com/tools/notepad (this will let you type and download the file code)
+
+4. copy the block (code 1) and paste into the notepad. save as manifest.json
+
+5. copy the block (code 2) and paste as content.js
+
+6. move both files to a new folder with a name like 'grassGate'
+
+7. click "load unpacked" on your extension manager
+
+8. select the files
+
+9. enjoy having to type "grass" every time a page loads
+
+
+CODE BLOCKS!!!!!
+====================================
+
+----CODE 1:----
+copy from ->
+{
+  "manifest_version": 3,
+  "name": "Grass Gate",
+  "version": "1.0",
+  "description": "Requires typing 'grass' before any page loads.",
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"],
+      "run_at": "document_start"
+    }
+  ]
+}
+<- to here
+
+
+----CODE 2:----
+copy from ->
+(function () {
+  // Create overlay
+  const overlay = document.createElement("div");
+  overlay.style.position = "fixed";
+  overlay.style.top = "0";
+  overlay.style.left = "0";
+  overlay.style.width = "100vw";
+  overlay.style.height = "100vh";
+  overlay.style.background = "rgba(0,0,0,0.9)";
+  overlay.style.color = "white";
+  overlay.style.display = "flex";
+  overlay.style.flexDirection = "column";
+  overlay.style.alignItems = "center";
+  overlay.style.justifyContent = "center";
+  overlay.style.fontSize = "24px";
+  overlay.style.zIndex = "999999999";
+  overlay.style.fontFamily = "sans-serif";
+  overlay.innerHTML = `
+    <div>Type <b>grass</b> to continue</div>
+    <input id="grassInput" type="text" style="
+      margin-top:20px;
+      padding:10px;
+      font-size:20px;
+      text-align:center;
+    ">
+  `;
+
+  document.documentElement.appendChild(overlay);
+
+  const input = overlay.querySelector("#grassInput");
+
+  input.addEventListener("input", () => {
+    if (input.value.toLowerCase() === "grass") {
+      overlay.remove();
+    }
+  });
+})();
+<- to here

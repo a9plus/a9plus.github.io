@@ -1,0 +1,277 @@
+<!DOCTYPE html> 
+<html lang="en"> 
+<head> 
+<meta charset="UTF-8"> 
+<meta name="viewport" content="width=device-width, initial-scale=1.0"> 
+<title>TIXY but with 8 grid sizes, rainbow mode and custom inputs</title> 
+<style> 
+* { box-sizing: border-box; } 
+body { 
+    margin: 0; 
+    padding: 40px 20px; 
+    background-color: #000000; 
+    color: #ffffff; 
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; 
+    display: flex; 
+    flex-direction: column; 
+    align-items: center; 
+    min-height: 100vh; 
+    gap: 24px; 
+} 
+h1 { margin: 0; font-size: 20px; font-weight: 400; letter-spacing: 1px; color: #ffffff; text-align: center; } 
+canvas { background: #000000; max-width: 400px; width: 100%; height: auto; aspect-ratio: 1 / 1; display: block; } 
+.controls-wrapper { width: 100%; max-width: 400px; display: flex; flex-direction: column; gap: 16px; } 
+textarea { 
+    width: 100%; 
+    height: 40px; 
+    background-color: transparent; 
+    border: none; 
+    color: #FF0000; 
+    padding: 0; 
+    font-family: 'Courier New', Courier, monospace; 
+    font-size: 16px; 
+    resize: none; 
+    font-weight: bold; 
+    outline: none; 
+} 
+.controls { display: flex; align-items: center; justify-content: space-between; gap: 10px; } 
+.control-row { display: flex; align-items: center; gap: 8px; } 
+select { background: transparent; color: #ffffff; border: none; padding: 0; font-size: 14px; cursor: pointer; font-weight: bold; outline: none; -webkit-appearance: none; -moz-appearance: none; appearance: none; } 
+select:hover { color: #ff0000; } 
+label { font-size: 14px; font-weight: bold; color: #888888; cursor: pointer; user-select: none; } 
+input[type="checkbox"] { width: 14px; height: 14px; cursor: pointer; accent-color: #FF0000; margin: 0; } 
+
+/* Dynamic Sliders Container */
+#dynamicSliders {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    background: #000000;
+    padding: 4px 0;
+    width: 100%;
+}
+.slider-group {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    width: 100%;
+}
+.slider-group label {
+    font-family: monospace;
+    font-size: 16px;
+    color: #FF0000;
+    font-weight: bold;
+    min-width: 40px;
+}
+.slider-group span {
+    font-family: monospace;
+    font-size: 14px;
+    color: #888888;
+    min-width: 45px;
+    text-align: right;
+}
+input[type="range"] { 
+    flex-grow: 1; 
+    accent-color: #FF0000; 
+    cursor: pointer; 
+    background: #222;
+    height: 4px;
+    border-radius: 2px;
+    appearance: none;
+    outline: none;
+}
+input[type="range"]::-webkit-slider-thumb {
+    appearance: none;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: #FF0000;
+    cursor: pointer;
+}
+input[type="range"]::-moz-range-thumb {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: #FF0000;
+    cursor: pointer;
+    border: none;
+}
+</style> 
+</head> 
+<body> 
+<h1>TIXY but with 8 grid sizes, rainbow mode and custom inputs</h1> 
+<canvas id="tixyCanvas" width="400" height="400"></canvas> 
+<div class="controls-wrapper"> 
+<!-- Updated default formula -->
+<textarea id="formulaInput" spellcheck="false">(t, i, x, y, angle, fov, fade) => Math.sign(Math.sin(15 / (y + 0.1 + fov) + t * 4) * Math.cos((x + (angle * 18) - 8) / (y + 0.1)))+x/(fade*9)</textarea> 
+
+<!-- Container where your custom sliders will spawn automatically -->
+<div id="dynamicSliders"></div>
+
+<div class="controls"> 
+<div class="control-row"> 
+<label for="gridSizeSelect">Size:</label> 
+<select id="gridSizeSelect"> 
+<option value="2">2x2</option> 
+<option value="4">4x4</option> 
+<option value="8">8x8</option> 
+<option value="16">16x16</option> 
+<option value="32" selected>32x32</option> 
+<option value="64">64x64</option> 
+<option value="128">128x128</option> 
+<option value="256">256x256</option> 
+</select> </div> 
+<div class="control-row"> 
+<input type="checkbox" id="multicolorToggle"> 
+<label for="multicolorToggle">Rainbow</label> </div> </div> </div> 
+<script> 
+const canvas = document.getElementById('tixyCanvas'); 
+const ctx = canvas.getContext('2d'); 
+const formulaInput = document.getElementById('formulaInput'); 
+const sizeDropdown = document.getElementById('gridSizeSelect'); 
+const multicolorToggle = document.getElementById('multicolorToggle'); 
+const slidersContainer = document.getElementById('dynamicSliders');
+
+const CANVAS_WIDTH = canvas.width; 
+let GRID_SIZE = parseInt(sizeDropdown.value, 10); 
+let CELL_SIZE = CANVAS_WIDTH / GRID_SIZE; 
+let MAX_RADIUS = CELL_SIZE / 2; 
+let tixyFunction = () => 0; 
+let startTime = Date.now(); 
+
+// Object tracking the values of custom active sliders
+let customInputs = {};
+
+function compileFormula() { 
+    const code = formulaInput.value;
+    try { 
+        tixyFunction = eval(code);
+        updateSliders(code);
+    } catch (e) { 
+        // Fail silently on syntax errors while typing 
+    } 
+} 
+
+function updateSliders(codeStr) {
+    // Upgraded regex extracts everything inside the main function parameter parenthesis
+    const argsMatch = codeStr.match(/^\s*\(([^)]*)\)\s*=>/);
+    if (!argsMatch) return;
+
+    // Split parameters and clean up whitespace
+    const allArgs = argsMatch[1].split(',').map(s => s.trim()).filter(Boolean);
+    
+    // The first 4 args are standard (t, i, x, y). Extract everything after them.
+    const customArgs = allArgs.slice(4);
+
+    // Map out new slider config while preserving values for ones that stayed the same
+    const nextInputs = {};
+    customArgs.forEach(arg => {
+        nextInputs[arg] = customInputs[arg] !== undefined ? customInputs[arg] : 0.5;
+    });
+    
+    // If the list of slider names hasn't changed, skip rebuilding the DOM elements
+    if (JSON.stringify(Object.keys(nextInputs)) === JSON.stringify(Object.keys(customInputs))) {
+        return;
+    }
+    
+    customInputs = nextInputs;
+    slidersContainer.innerHTML = '';
+
+    customArgs.forEach(arg => {
+        const group = document.createElement('div');
+        group.className = 'slider-group';
+
+        const label = document.createElement('label');
+        label.textContent = arg + ':';
+
+        const slider = document.createElement('input');
+        slider.type = 'range';
+        slider.min = '-1';
+        slider.max = '1';
+        slider.step = '0.01';
+        slider.value = customInputs[arg];
+
+        const valueDisplay = document.createElement('span');
+        valueDisplay.textContent = parseFloat(customInputs[arg]).toFixed(2);
+
+        slider.addEventListener('input', (e) => {
+            customInputs[arg] = parseFloat(e.target.value);
+            valueDisplay.textContent = customInputs[arg].toFixed(2);
+        });
+
+        group.appendChild(label);
+        group.appendChild(slider);
+        group.appendChild(valueDisplay);
+        slidersContainer.appendChild(group);
+    });
+}
+
+// Adjust input height if user writes multiple lines, keeping it fluid 
+formulaInput.addEventListener('input', () => { 
+    formulaInput.style.height = 'auto'; 
+    formulaInput.style.height = formulaInput.scrollHeight + 'px'; 
+    compileFormula(); 
+}); 
+
+sizeDropdown.addEventListener('change', (e) => { 
+    GRID_SIZE = parseInt(e.target.value, 10); 
+    CELL_SIZE = CANVAS_WIDTH / GRID_SIZE; 
+    MAX_RADIUS = CELL_SIZE / 2; 
+}); 
+
+function render() { 
+    ctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_WIDTH); 
+    const t = (Date.now() - startTime) / 1000; 
+    const isMulticolor = multicolorToggle.checked; 
+    let i = 0; 
+    
+    // Gather all currently active slider values in order
+    const activeSliderValues = Object.values(customInputs);
+
+    for (let yGrid = 0; yGrid < GRID_SIZE; yGrid++) { 
+        for (let xGrid = 0; xGrid < GRID_SIZE; xGrid++) { 
+            const x = (xGrid / GRID_SIZE) * 16; 
+            const y = (yGrid / GRID_SIZE) * 16; 
+            let val = 0; 
+            try { 
+                // Pass base values, followed by all dynamically read slider values
+                val = tixyFunction(t, i, x, y, ...activeSliderValues); 
+            } catch (e) { 
+                // Fail silently during runtime errors 
+            } 
+            let size = Math.abs(val); 
+            if (size > 1) size = 1; 
+            if (isNaN(size)) size = 0; 
+            const radius = size * MAX_RADIUS; 
+            if (radius > 0) { 
+                const centerX = (xGrid * CELL_SIZE) + (CELL_SIZE / 2); 
+                const centerY = (yGrid * CELL_SIZE) + (CELL_SIZE / 2); 
+                ctx.beginPath(); 
+                ctx.arc(centerX, centerY, radius, 0, Math.PI * 2); 
+                if (isMulticolor) { 
+                    if (val < 0) { 
+                        const ratio = Math.min(Math.abs(val), 1); 
+                        const hue = ratio * 60; 
+                        ctx.fillStyle = `hsl(${hue}, 100%, 50%)`; 
+                    } else { 
+                        const ratio = Math.min(val, 1); 
+                        const hue = 120 + (ratio * 160); 
+                        ctx.fillStyle = `hsl(${hue}, 100%, 50%)`; 
+                    } 
+                } else { 
+                    ctx.fillStyle = val < 0 ? '#ff3333' : '#ffffff'; 
+                } 
+                ctx.fill(); 
+            } 
+            i++; 
+        } 
+    } 
+    requestAnimationFrame(render); 
+} 
+
+compileFormula(); 
+requestAnimationFrame(render); 
+</script> 
+</body> 
+</html>

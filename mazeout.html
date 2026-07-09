@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8"/>
+<title>Mazeout</title>
+
+<style>
+body{
+  margin:0;
+  overflow:hidden;
+  background:black;
+  font-family:monospace;
+}
+
+canvas{
+  width:100vw;
+  height:100vh;
+  display:block;
+  image-rendering:pixelated;
+}
+
+/* BACKPACK PANEL */
+#backpack{
+  position:fixed;
+  right:10px;
+  bottom:10px;
+  width:260px;
+  height:180px;
+  background:rgba(0,0,0,0.7);
+  border:1px solid #333;
+  color:white;
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  grid-auto-rows:60px;
+  gap:4px;
+  padding:6px;
+  overflow:auto;
+}
+
+.slot{
+  background:#111;
+  border:1px solid #222;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  cursor:pointer;
+}
+
+.slot img{
+  width:90%;
+  height:auto;
+}
+</style>
+</head>
+
+<body>
+
+<canvas id="c"></canvas>
+<div id="backpack"></div>
+
+<script>
+
+const c=document.getElementById("c");
+const ctx=c.getContext("2d");
+
+function resize(){
+  c.width=innerWidth;
+  c.height=innerHeight;
+}
+addEventListener("resize",resize);
+resize();
+
+/* ================= MAZE ================= */
+
+const map = [
+"111111111111111111",
+"100000000000000001",
+"101111111111111101",
+"101000000000000101",
+"101011111111110101",
+"101010000000010101",
+"101010101110010101",
+"100010000000000001",
+"111111111111111111"
+];
+
+const TILE=100;
+
+/* ================= PLAYER ================= */
+
+let player={x:200,y:200,a:0};
+
+let keys={};
+addEventListener("keydown",e=>keys[e.key.toLowerCase()]=true);
+addEventListener("keyup",e=>keys[e.key.toLowerCase()]=false);
+
+/* ================= BUTTONS ================= */
+
+const wallButtons=[
+  {url:"https://a9scorner.neocities.org",img:"https://a9scorner.neocities.org/button.gif"},
+  {url:"https://onio.club",img:"https://onio.club/chatbt.gif"},
+  {url:"https://ribo.zone",img:"ribozone.gif"},
+  {url:"https://gleefulpebble.neocities.org",img:"/gleefulpebble.gif"},
+  {url:"https://purplestarship.neocities.org/",img:"https://purplestarship.neocities.org/banners/PSbanner.gif"},
+  {url:"https://tabf5.com/",img:"https://tabf5.com/img/button.gif"},
+  {url:"https://kuroi.com.br/",img:"https://kuroi.com.br/img/button1.png"},
+  {url:"https://powerduck.neocities.org",img:"https://powerduck.neocities.org/images/pdbadge-88x31.png"},
+  {url:"https://dabu18.neocities.org",img:"https://dabu18.neocities.org/images/icons/dabu18_button.png"},
+  {url:"https://yelorange.neocities.org/",img:"https://yelorange.neocities.org/button.png"},
+  {url:"https://gl1tch-k1d.neocities.org/",img:"https://gl1tch-k1d.neocities.org/glitch.gif"},
+  {url:"https://hsquare.neocities.org/",img:"hsquare_88x31.gif"},
+  {url:"https://the-lemur.neocities.org",img:"https://the-lemur.neocities.org/lemurbutton.gif"},
+  {url:"https://c-nder.neocities.org/",img:"https://c-nder.neocities.org/buttons/c-nder-button.gif"},
+  {url:"http://www.catb.org/hacker-emblem/",img:"glider.png"},
+  {url:"https://xobyte.org/neocraft",img:"NeoCraft.gif"},
+  {url:"wireplay",img:"wireplay.gif"},
+  {url:"https://www.pseustuff.com",img:"https://www.pseustuff.com/gallery/PseuStuff.button.1.gif"},
+    {url:"https://www.underwhite.neocities.org",img:"udrr.gif"},
+  {url:"https://bind.neocities.org/",img:"https://bind.neocities.org/images/index/bind3.gif"}
+];
+
+const buttonImgs={};
+for(const b of wallButtons){
+  const i=new Image();
+  i.src=b.img;
+  buttonImgs[b.img]=i;
+}
+
+/* ================= SPAWN ================= */
+
+let placedButtons = [
+  { x: 200, y: 200, ...wallButtons[0] },
+  { x: 500, y: 200, ...wallButtons[1] },
+  { x: 800, y: 200, ...wallButtons[2] },
+  { x: 1100, y: 200, ...wallButtons[3] },
+  { x: 1400, y: 200, ...wallButtons[4] },
+  { x: 1600, y: 200, ...wallButtons[5] },
+
+  { x: 200, y: 400, ...wallButtons[6] },
+  { x: 500, y: 400, ...wallButtons[7] },
+  { x: 800, y: 400, ...wallButtons[8] },
+  { x: 1100, y: 400, ...wallButtons[9] },
+  { x: 1400, y: 400, ...wallButtons[10] },
+  { x: 1600, y: 400, ...wallButtons[11] },
+
+  { x: 200, y: 600, ...wallButtons[12] },
+  { x: 500, y: 600, ...wallButtons[13] },
+  { x: 800, y: 600, ...wallButtons[14] },
+  { x: 1100, y: 600, ...wallButtons[15] },
+  { x: 1400, y: 600, ...wallButtons[16] },
+  { x: 1600, y: 600, ...wallButtons[17] },
+  { x: 300,  y: 300, ...wallButtons[18]}
+  
+];
+
+/* ================= BACKPACK ================= */
+
+let backpack=[];
+
+function renderBackpack(){
+  const el=document.getElementById("backpack");
+  el.innerHTML="";
+
+  for(const item of backpack){
+    const slot=document.createElement("div");
+    slot.className="slot";
+
+    const img=document.createElement("img");
+    img.src=item.img;
+
+    slot.onclick=()=>window.open(item.url,"_blank");
+
+    slot.appendChild(img);
+    el.appendChild(slot);
+  }
+}
+
+/* ================= MOVE ================= */
+
+function move(){
+  let sp=3;
+
+  let nx=player.x;
+  let ny=player.y;
+
+  if(keys["w"]){
+    nx+=Math.cos(player.a)*sp;
+    ny+=Math.sin(player.a)*sp;
+  }
+  if(keys["s"]){
+    nx-=Math.cos(player.a)*sp;
+    ny-=Math.sin(player.a)*sp;
+  }
+
+  let mx=Math.floor(nx/TILE);
+  let my=Math.floor(ny/TILE);
+
+  if(map[my]?.[mx]==="0"){
+    player.x=nx;
+    player.y=ny;
+  }
+
+  if(keys["a"])player.a-=0.05;
+  if(keys["d"])player.a+=0.05;
+}
+
+/* ================= RAYCAST + ZBUFFER ================= */
+
+let zbuffer=[];
+
+function cast(){
+  const rays=120;
+  const fov=Math.PI/3;
+  const proj=(c.width/2)/Math.tan(fov/2);
+
+  zbuffer.length=0;
+
+  for(let i=0;i<rays;i++){
+
+    let ra=player.a - fov/2 + (i/rays)*fov;
+
+    let dx=Math.cos(ra);
+    let dy=Math.sin(ra);
+
+    let x=player.x;
+    let y=player.y;
+
+    let dist=0;
+    let hitX=0;
+
+    for(let t=0;t<500;t+=4){
+      x+=dx*4;
+      y+=dy*4;
+      dist+=4;
+
+      let mx=Math.floor(x/TILE);
+      let my=Math.floor(y/TILE);
+
+      if(map[my]?.[mx]==="1"){
+        hitX=x-mx*TILE;
+        break;
+      }
+    }
+
+    let corrected=dist*Math.cos(ra-player.a);
+zbuffer[i]=corrected;
+
+let h=(TILE/(corrected+0.001))*proj;
+
+let shade = Math.max(0.15, 1 - corrected / 700);
+
+ctx.globalAlpha = shade;
+
+ctx.drawImage(
+  wallTex,
+  Math.floor((hitX/TILE)*100),0,1,100,
+  i*(c.width/rays),
+  c.height/2-h/2,
+  c.width/rays+1,
+  h
+);
+
+ctx.globalAlpha = 1;
+  }
+}
+
+const wallTex=new Image();
+wallTex.src="brickwall.png";
+
+/* ================= BUTTON RENDER ================= */
+
+function drawButtons(){
+
+  const fov=Math.PI/3;
+
+  for(const b of placedButtons){
+
+    let dx=b.x-player.x;
+    let dy=b.y-player.y;
+
+    let dist=Math.sqrt(dx*dx+dy*dy);
+
+    let ang=Math.atan2(dy,dx)-player.a;
+
+    while(ang<-Math.PI)ang+=Math.PI*2;
+    while(ang>Math.PI)ang-=Math.PI*2;
+
+    if(Math.abs(ang)>fov/2)continue;
+
+    let screenX=(ang/(fov/2))*(c.width/2)+c.width/2;
+
+    let ray=Math.floor((screenX/c.width)*zbuffer.length);
+
+    let visible=true;
+
+    if(ray>=0 && ray<zbuffer.length){
+      if(dist>zbuffer[ray]) visible=false;
+    }
+
+    let img = buttonImgs[b.img];
+if (
+  !img ||
+  !img.complete ||
+  img.naturalWidth === 0
+) continue;
+
+    ctx.globalAlpha=visible?1:0.3;
+
+    let size=260;
+
+    ctx.drawImage(
+      img,
+      screenX-size/2,
+      c.height/2-size/2,
+      size,
+      size*(31/88)
+    );
+
+    ctx.globalAlpha=1;
+  }
+}
+
+/* ================= PICKUP ================= */
+
+function checkPickup(){
+
+  for(let i=placedButtons.length-1;i>=0;i--){
+
+    let b=placedButtons[i];
+
+    let dx=b.x-player.x;
+    let dy=b.y-player.y;
+
+    let dist=Math.sqrt(dx*dx+dy*dy);
+
+    if(dist<45){
+      backpack.push(b);
+      placedButtons.splice(i,1);
+      renderBackpack();
+    }
+  }
+}
+
+/* ================= LOOP ================= */
+
+function loop(){
+
+  move();
+  checkPickup();
+
+  ctx.clearRect(0,0,c.width,c.height);
+
+  cast();
+  drawButtons();
+
+  requestAnimationFrame(loop);
+}
+
+loop();
+
+</script>
+
+</body>
+</html>

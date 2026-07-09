@@ -1,0 +1,62 @@
+[
+  {
+    "type": "text",
+    "id": "coinText",
+    "x": 100,
+    "y": 100,
+    "text": "0",
+    "size": 32,
+    "color": "#ffff00"
+  },
+
+  {
+    "type": "rect",
+    "id": "block",
+    "x": 700,
+    "y": 300,
+    "w": 120,
+    "h": 120,
+    "color": "#ff0000"
+  },
+
+  {
+    "type": "trigger",
+    "x": 100,
+    "y": 200,
+    "w": 120,
+    "h": 120,
+    "color": "#00ff00",
+    "action": {
+      "var": {
+        "coins": "(coins || 0) + 1"
+      }
+    }
+  },
+
+  {
+    "type": "trigger",
+    "x": 300,
+    "y": 200,
+    "w": 120,
+    "h": 120,
+    "color": "#00bfff",
+    "action": {
+      "id": "coinText",
+      "text": "'Coins: ' + (coins || 0)"
+    }
+  },
+
+  {
+    "type": "trigger",
+    "x": 500,
+    "y": 200,
+    "w": 120,
+    "h": 120,
+    "color": "#ffff00",
+    "action": {
+      "eventif": "(coins || 0) >= 1",
+      "id": "block",
+      "x": 1000
+    }
+  }
+]

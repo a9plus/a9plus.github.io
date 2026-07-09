@@ -1,0 +1,82 @@
+
+    <!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Webring</title>
+    <link href="/style.css" rel="stylesheet" type="text/css" media="all">
+</head>
+<body>
+    <div style="width: 90%; height: 80vh; margin: 5vh 5%; padding: 1rem; background-color: #feff38; background: url('https://dummyimage.com*'); border-radius: 16px; box-sizing: border-box; overflow-wrap: break-word; display: flex; overflow: auto; flex-direction: column; justify-content: flex-start;">
+    <p>contact me to join my webring. give me a 4 letter abbr and your url to join</p>
+    <a href="mailto:ybl1k@outlook.com">click here to email</a>
+        <!-- The image element linked to my webring coordinate map -->
+        <img src="https://a9scorner.neocities.org/a9RING.png" usemap="#webring-map" width="620" height="180" alt="Webring Navigation" style="display: block; border: none;">
+
+        <!-- The map element containing the scaled button regions -->
+        <map name="webring-map">
+            <!-- "Next" Button -->
+            <area shape="rect" coords="234,18,603,83" href="https://a9scorner.neocities.org/webring?action=next&from=a9pl" alt="Next Site">
+            
+            <!-- "Prev" Button -->
+            <area shape="rect" coords="234,101,603,166" href="https://a9scorner.neocities.org/webring?action=back&from=a9pl" alt="Previous Site">
+            
+            <!-- "RND" Button -->
+            <area shape="rect" coords="96,112,194,163" href="https://a9scorner.neocities.org/webring?action=rnd&from=a9pl" alt="Random Site">
+        </map>
+    </div>
+
+    <script>
+        // Array of webring members with their 4-character ID and site URL
+        const webring = [
+            { id: "a9pl", url: "https://a9scorner.neocities.org" },
+            { id: "ptti", url: "https://pottisplace.neocities.org/"},
+            { id: "gbmn", url: "https://gabman.neocities.org/"}
+        ];
+
+        // Parse url parameters (?action=...&from=...)
+        const urlParams = new URLSearchParams(window.location.search);
+        const action = urlParams.get('action');
+        const fromId = urlParams.get('from');
+
+        if (action && fromId) {
+            // Find the index of the site sending the user
+            let currentIndex = webring.findIndex(site => site.id === fromId);
+
+            // Fallback to 0 if the id isn't found in your directory list
+            if (currentIndex === -1) currentIndex = 0;
+
+            let targetIndex;
+
+            if (action === 'next') {
+                targetIndex = currentIndex + 1;
+                // If it goes past the last site, wrap back to the first site (0)
+                if (targetIndex >= webring.length) targetIndex = 0;
+            } 
+            else if (action === 'back') {
+                targetIndex = currentIndex - 1;
+                // If it goes behind the first site, wrap to the last site
+                if (targetIndex < 0) targetIndex = webring.length - 1;
+            } 
+            else if (action === 'rnd') {
+                // Pick a truly random index from the list
+                targetIndex = Math.floor(Math.random() * webring.length);
+                
+                // Optional: avoid picking the same site they are currently visiting
+                if (targetIndex === currentIndex && webring.length > 1) {
+                    targetIndex = (targetIndex + 1) % webring.length;
+                }
+            }
+
+            // Redirect the browser to the chosen site destination
+            if (webring[targetIndex]) {
+                window.location.href = webring[targetIndex].url;
+            }
+        }
+    </script>
+</body>
+</html>
+
+</body>
+</html>

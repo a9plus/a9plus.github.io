@@ -1,0 +1,51 @@
+body {
+  color: black;
+  font-family: Verdana;
+  margin: 0;
+  padding-top: 40px;
+  background-color: #38b6ff;
+  background-image: url("blissa9.png");
+  background-repeat: no-repeat;
+  background-position: center center;
+  background-size: cover;
+}
+
+.kf {
+  white-space: pre-wrap;
+}
+
+img {
+  image-rendering: pixelated;
+  }
+
+/* Top bar aligned with main container */
+#topbar {
+  position: fixed;
+  top: 0;
+  left: 5%;        /* aligns with main container */
+  width: 90%;      /* same width as main container */
+  height: 40px;    /* one-line tall */
+  background-color: #feff38; /*feff38*/
+  border-radius: 16px;
+
+  display: flex;
+  align-items: center;   /* vertical centering */
+  justify-content: flex-start; /* left align */
+
+  padding-left: 12px;    /* small padding so the image/text breathe */
+  font-size: 28px;
+  line-height: 32px;
+  font-weight: bold;
+
+  z-index: 9998;
+  
+  margin-top: 20px;
+}
+
+#topbar p {
+  margin: 0;
+  display: flex;
+  align-items: center; /* keeps text + image aligned */
+  gap: 8px;            /* space between text and image */
+}
+

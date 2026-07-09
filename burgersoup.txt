@@ -1,0 +1,11 @@
+>> title: Burger Soup
+
+Add @ground beef{} to a #pan{} over medium-high heat and cook for ~{7-10%minutes}, breaking it into crumbles with a #spatula{}, until it is completely browned and reaches 160°F.
+
+Heat your #pot{} of @water{} to a boil.
+
+Add @pasta{} to your pot and follow the instructions on the box. Wide and thin pasta works best.
+
+Add @pasta{} and @ground beef{} to a #bowl{} and let a @bouillon{} cube dissolve.
+
+Spread @shredded cheese{} over the #bowl{}.

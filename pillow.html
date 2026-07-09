@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>PILLOWSLAP TM</title>
+
+<style>
+body {
+    background-color: #00201c;
+    font-family: Arial, Sans-serif;
+    margin: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+body::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+
+    background: repeating-linear-gradient(
+        to bottom,
+        rgba(95, 210, 178, 0.25) 0px,
+        rgba(95, 210, 178, 0.25) 2px,
+        transparent 2px,
+        transparent 7px
+    );
+
+    animation: crtMove 6s linear infinite;
+}
+
+@keyframes crtMove {
+    from {
+        transform: translateY(0);
+    }
+
+    to {
+        transform: translateY(7px);
+    }
+}
+
+.engine {
+    margin-top: 45px;
+    text-align: left;
+    background-color:#114f3b;
+    padding:16px;
+}
+
+.engine h1 {
+    font-size: 32px;
+}
+
+.engine p {
+    line-height: 1.5;
+}
+
+.specs {
+    margin-top: 20px;
+}
+
+.container {
+    text-align: center;
+    width: 90%;
+    max-width: 700px;
+}
+
+h1, h2, h4 {
+    color: #5fd2b2;
+}
+
+h1 {
+      font-size: 42px;
+    margin-bottom: 10px;
+}
+
+p {
+    color: #33af72;
+}
+
+.description {
+    color: #114f3b;
+}
+
+.pillows {
+    margin-top: 30px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+button {
+    background-color: #114f3b;
+    color: #5fd2b2;
+    border: 2px solid #33af72;
+    padding: 15px;
+    font-size: 18px;
+    cursor: pointer;
+    font-family: Arial, Sans-serif;
+}
+
+button:hover {
+    background-color: #33af72;
+    color: #00201c;
+}
+</style>
+
+</head>
+
+<body>
+
+<div class="container">
+<h1>PILLOWSLAP</h1>
+<h2>THE ALL NEW GAME ABOUT SIMPLY SLAPPING A PILLOW.</h2>
+<h4>PILLOWSELECTOR™</h4>
+
+<p>
+Welcome to the advanced pillow selection system.
+</p>
+
+<div class="pillows">
+
+<button onclick="selectPillow('black')">
+THE BLACK PILLOW©
+<br>
+<span class="description">
+Dark. Elegant. Impact-ready.
+</span>
+</button>
+
+<button onclick="selectPillow('white')">
+THAT ONE WHITE PILLOW WITH THOSE TAN STRIPES©
+<br>
+<span class="description">
+The classic pillow experience.
+</span>
+</button>
+
+<button onclick="selectPillow('blue')">
+THE BLUE AND WHITE PILLOW THAT LOOKS LIKE A SAILOR'S OUTFIT©
+<br>
+<span class="description">
+Modern pillow technology.
+</span>
+</button>
+
+</div>
+<section class="engine">
+    <h1>PILLOWENGINE™</h1>
+
+    <p>
+        We use only the best Grade-A PILLOWENGINE™ technology with
+        9-point accuracy to deliver you the best experience you can have
+        while slapping a pillow.
+    </p>
+
+    <p>
+        PILLOWENGINE™ is a revolutionary pillow interaction system designed
+        to provide precise slap detection, instant playback, and the most
+        advanced pillow simulation technology available.
+    </p>
+
+    <div class="specs">
+        <p>- 9-Point Precision Impact Mapping™</p>
+        <p>- Real-Time Pillow Response Playback™</p>
+        <p>- Advanced Pillow Selection Algorithms™</p>
+        <p>- Zero-Latency Slap Delivery System™</p>
+        <p>- Compatible With PILLOWSELECTOR™</p>
+        <p>- Insanely realistic PILLOWGRAPHICS™ with our ANTILAG™ video system</p>
+    </div>
+</section>
+
+<br style="height:45px;">
+
+</div>
+
+<script>
+function selectSound() {
+    const audio = new AudioContext();
+
+    const osc = audio.createOscillator();
+    const gain = audio.createGain();
+
+    osc.type = "square";
+    osc.frequency.setValueAtTime(900, audio.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(
+        300,
+        audio.currentTime + 0.12
+    );
+
+    gain.gain.setValueAtTime(0.08, audio.currentTime);
+    gain.gain.exponentialRampToValueAtTime(
+        0.001,
+        audio.currentTime + 0.12
+    );
+
+    osc.connect(gain);
+    gain.connect(audio.destination);
+
+    osc.start();
+    osc.stop(audio.currentTime + 0.12);
+}
+
+function selectPillow(pillow) {
+    selectSound();
+
+    setTimeout(() => {
+        location.href = "/pillow/" + pillow + "/slap.html";
+    }, 200);
+}
+</script>
+
+</body>
+</html>

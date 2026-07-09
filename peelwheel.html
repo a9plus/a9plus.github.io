@@ -1,0 +1,178 @@
+<!DOCTYPE html> 
+<html lang="en"> 
+<head> 
+    <meta charset="UTF-8"> 
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
+    <title>The Peel Wheel</title> 
+    <style> 
+        /* Top-to-bottom metallic background gradient */ 
+        body { 
+            background: linear-gradient(to bottom, #dcdcdc, #aaaaaa, #777777, #444444); 
+            margin: 0; 
+            height: 100vh; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            justify-content: center; 
+            font-family: Arial, sans-serif; 
+        } 
+        /* Industrial metallic display box with rivets/screws */ 
+        .metal-display-box { 
+            position: relative; 
+            width: 200px; 
+            height: 200px; 
+            background: linear-gradient(135deg, #999, #666); 
+            border: 10px solid #555; 
+            box-shadow: inset 0 0 15px rgba(0,0,0,0.5), 0 8px 16px rgba(0,0,0,0.4); 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            margin-bottom: 30px; 
+        } 
+        /* The screw look created with absolute positioning and borders */ 
+        .screw { 
+            position: absolute; 
+            width: 8px; 
+            height: 8px; 
+            background: #bbb; 
+            border: 1px solid #333; 
+            border-radius: 50%; 
+            box-shadow: inset -1px -1px 2px rgba(0,0,0,0.4); 
+        } 
+        /* Top-left screw slot line */ 
+        .screw::before { 
+            content: ''; 
+            position: absolute; 
+            top: 3px; 
+            left: 1px; 
+            width: 6px; 
+            height: 1px; 
+            background: #444; 
+            transform: rotate(45deg); 
+        } 
+        .top-left { top: 4px; left: 4px; } 
+        .top-right { top: 4px; right: 4px; } 
+        .bottom-left { bottom: 4px; left: 4px; } 
+        .bottom-right { bottom: 4px; right: 4px; } 
+        /* banana image */ 
+        #bananaimg { 
+            width: 80%; 
+            height: 80%; 
+            object-fit: contain; 
+        } 
+        /* Yellow metallic industrial button */ 
+        .yellow-metal-btn { 
+            background: linear-gradient(to bottom, #fff200, #d4af37, #aa8000); 
+            border: 4px solid #554400; 
+            border-radius: 4px; 
+            color: #222; 
+            padding: 15px 40px; 
+            font-size: 24px; 
+            font-weight: bold; 
+            letter-spacing: 2px; 
+            text-transform: uppercase; 
+            text-shadow: 1px 1px 0px rgba(255,255,255,0.5); 
+            box-shadow: 0 6px 0 #443300, 0 8px 10px rgba(0,0,0,0.5); 
+            cursor: pointer; 
+            transition: all 0.1s ease; 
+        } 
+        /* Industrial push button action */ 
+        .yellow-metal-btn:active { 
+            transform: translateY(4px); 
+            box-shadow: 0 2px 0 #443300, 0 3px 5px rgba(0,0,0,0.5); 
+        } 
+        .gray-metal-text { 
+            background: linear-gradient(to bottom, #2f3538, #70777a, #b0b7bd); 
+            border: 4px solid #554400; 
+            border-radius: 4px; 
+            color: #222; 
+            padding: 15px 40px; 
+            font-size: 24px; 
+            font-weight: bold; 
+            letter-spacing: 2px; 
+            text-transform: uppercase; 
+            text-shadow: 1px 1px 0px rgba(255,255,255,0.5); 
+            box-shadow: 0 6px 0 #443300, 0 8px 10px rgba(0,0,0,0.5); 
+            cursor: pointer; 
+            transition: all 0.1s ease; 
+        } 
+    </style> 
+</head> 
+<body> 
+    <!-- Metal Screws --> 
+    <div class="metal-display-box"> 
+        <div class="screw top-left"></div> 
+        <div class="screw top-right"></div> 
+        <div class="screw bottom-left"></div> 
+        <div class="screw bottom-right"></div> 
+        <!-- Image element --> 
+        <img id="bananaimg" src="data:image/svg+xml;utf8,<svg xmlns='http://w3.org' viewBox='0 0 24 24' width='100' height='100'><text y='20' font-size='20'>🍌</text></svg>" alt="Banana Peel"> 
+    </div> 
+    
+    <!-- Metal Button --> 
+    <button  class="yellow-metal-btn" onclick="peel();">Peel</button> 
+    <p id="output" class="gray-metal-text">Result: Not started yet</p>
+    <script> 
+    const peelimg = document.getElementById('bananaimg'); 
+    const outp = document.getElementById('output');
+    //to press to start
+    peelimg.src = "presspeel.png"; 
+    let trimmedpeel;
+    //which one will you get????
+    const peels = [
+  // 50% Yellow Peels (50 items)
+  "yellowpeel.png", "yellowpeel.png", "yellowpeel.png", "yellowpeel.png", "yellowpeel.png", "yellowpeel.png", "yellowpeel.png", "yellowpeel.png", "yellowpeel.png", "yellowpeel.png",
+  "yellowpeel.png", "yellowpeel.png", "yellowpeel.png", "yellowpeel.png", "yellowpeel.png", "yellowpeel.png", "yellowpeel.png", "yellowpeel.png", "yellowpeel.png", "yellowpeel.png",
+  "yellowpeel.png", "yellowpeel.png", "yellowpeel.png", "yellowpeel.png", "yellowpeel.png", "yellowpeel.png", "yellowpeel.png", "yellowpeel.png", "yellowpeel.png", "yellowpeel.png",
+  "yellowpeel.png", "yellowpeel.png", "yellowpeel.png", "yellowpeel.png", "yellowpeel.png", "yellowpeel.png", "yellowpeel.png", "yellowpeel.png", "yellowpeel.png", "yellowpeel.png",
+  "yellowpeel.png", "yellowpeel.png", "yellowpeel.png", "yellowpeel.png", "yellowpeel.png", "yellowpeel.png", "yellowpeel.png", "yellowpeel.png", "yellowpeel.png", "yellowpeel.png",
+
+  // 25% Bruised Peels (25 items)
+  "bruisedpeel.png", "bruisedpeel.png", "bruisedpeel.png", "bruisedpeel.png", "bruisedpeel.png", "bruisedpeel.png", "bruisedpeel.png", "bruisedpeel.png", "bruisedpeel.png", "bruisedpeel.png",
+  "bruisedpeel.png", "bruisedpeel.png", "bruisedpeel.png", "bruisedpeel.png", "bruisedpeel.png", "bruisedpeel.png", "bruisedpeel.png", "bruisedpeel.png", "bruisedpeel.png", "bruisedpeel.png",
+  "bruisedpeel.png", "bruisedpeel.png", "bruisedpeel.png", "bruisedpeel.png", "bruisedpeel.png",
+
+  // 15% Blue Peels (15 items)
+  "bluepeel.png", "bluepeel.png", "bluepeel.png", "bluepeel.png", "bluepeel.png", "bluepeel.png", "bluepeel.png", "bluepeel.png", "bluepeel.png", "bluepeel.png",
+  "bluepeel.png", "bluepeel.png", "bluepeel.png", "bluepeel.png", "bluepeel.png",
+
+  // 9% Chrome Peels (9 items)
+  "chromepeel.png", "chromepeel.png", "chromepeel.png", "chromepeel.png", "chromepeel.png", "chromepeel.png", "chromepeel.png", "chromepeel.png", "chromepeel.png",
+
+  // 1% Money Peel (1 item)
+  "moneypeel.png"
+];
+
+    
+    let currentDelay = 50; 
+    let isSpinning = false; 
+    //peel the banananananananana
+    function peel() { 
+      if (isSpinning) return; 
+      isSpinning = true; 
+      currentDelay = 50; 
+      runTickerAnimation(); 
+    } 
+    //tick tock tick tock like a clock
+    function runTickerAnimation() { 
+      const randomIndex = Math.floor(Math.random() * peels.length); 
+      const selectedPeel = peels[randomIndex]; 
+      
+      // FIXED: this is buggy because bananaImage was undefined. Changed it to peelimg.
+      peelimg.src = selectedPeel; 
+      peelimg.alt = selectedPeel; 
+      //i was looking at w3schools, so i accidentally did text.replace which bugged me out until if found out the issue WHY DOES IT KEEP SAYING .PNG????
+      trimmedpeel = selectedPeel.toLowerCase().replace(".png", "");
+      //why doesnt my percentage workkkkk!!!!!!! AAAAAA
+      outp.textContent = "Result: " + trimmedpeel + " (" + ( (peels.filter(item => item === selectedPeel).length / peels.length) * 100 ) + "%)";
+      currentDelay += 40; 
+      
+      if (currentDelay < 600) { 
+        setTimeout(runTickerAnimation, currentDelay); 
+      } else { 
+        isSpinning = false; 
+      } 
+    } 
+    </script> 
+</body> 
+</html>

@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>lilguy</title>
+
+<style>
+html,body{
+    margin:0;
+    width:100vh;
+    height:100vh;
+    overflow:hidden;
+    background:transparent;
+    font-family:monospace;
+}
+
+#widget{
+    position:relative;
+    width:100%;
+    height:100%;
+    overflow:visible;
+}
+
+#lilguy{
+    position:absolute;
+    left:15px;
+    top:15px;
+}
+
+#bubble{
+    position:absolute;
+    left:0;
+    top:0;
+    width:100%;
+    box-sizing:border-box;
+    padding:6px;
+    background:rgba(255,255,255,.95);
+    border:2px solid black;
+    border-radius:999px;
+    text-align:center;
+    z-index:100;
+    display:none;
+    pointer-events:none;
+}
+
+#body{
+    position:absolute;
+    left:0;
+    top:0;
+    overflow:hidden;
+}
+
+.eye{
+    position:absolute;
+    width:15%;
+    height:15%;
+    background:black;
+    overflow:hidden;
+    border-radius: 24px;
+}
+
+.eye.left{left:25%;top:32%;}
+.eye.right{right:25%;top:32%;}
+
+.pupil{
+    position:absolute;
+    width:40%;
+    height:40%;
+    background:white;
+    border-radius:999px;
+    left:30%;
+    top:30%;
+}
+
+.closed{
+    height:3% !important;
+}
+
+#mouth{
+    position:absolute;
+    width:22%;
+    height:4%;
+    background:black;
+    left:39%;
+    top:68%;
+    border-radius:999px;
+}
+
+.sleepZ{
+    position:absolute;
+    font-weight:bold;
+    animation:floatZ 2s linear forwards;
+    pointer-events:none;
+}
+
+@keyframes floatZ{
+    from{
+        opacity:1;
+        transform:translateY(0);
+    }
+    to{
+        opacity:0;
+        transform:translateY(-35px);
+    }
+}
+
+#badge{
+    position:absolute;
+    right:4px;
+    bottom:4px;
+    width:24px;
+    height:24px;
+    z-index:9999;
+}
+
+#badge img{
+    width:100%;
+    height:100%;
+    display:block;
+}
+</style>
+</head>
+<body>
+
+<div id="widget">
+
+<div id="bubble"></div>
+
+<div id="lilguy">
+    <div id="body">
+        <div class="eye left"><div class="pupil"></div></div>
+        <div class="eye right"><div class="pupil"></div></div>
+        <div id="mouth"></div>
+    </div>
+</div>
+
+<a id="badge" href="https://a9scorner.neocities.org" target="_blank">
+    <img src="a9logo.png" alt="A9">
+</a>
+
+</div>
+
+<script>
+let bodyEl = document.getElementById("body");
+const guy = document.getElementById("lilguy");
+const bubble = document.getElementById("bubble");
+const pupils = document.querySelectorAll(".pupil");
+const eyes = document.querySelectorAll(".eye");
+
+const colors = [
+"#7cf07c","#38b6ff","#ffcc00",
+"#ff8ae2","#ff6b6b","#c084fc"
+];
+const hour = new Date().getHours();
+const moods = {
+friendly:[
+"hi :)","hello","nice day","hope you're good",
+"i like websites",":3","hey there","cool page",
+"hello again","nice to see you","welcome in","you found me",
+"i am little","tiny website guy","i like this place","good " + (hour < 12 ? "morning" : hour < 18 ? "afternoon" : "evening"),
+"you seem nice","hey buddy","glad you're here","soft little hello"
+],
+lazy:[
+"zzz...","sleepy","five more minutes",
+"too comfy","yawn","...",
+"not moving","rest mode","i am melting","do not perceive me",
+"brain off","tired","barely awake","so cozy"
+],
+chaotic:[
+"BOOP","WHAA","!!!",">:D",
+"AAAAAAAA","zoom","uh oh",
+"tiny chaos","oops","beep beep","no thoughts","spinning",
+"im a tiny dude WAAAAA","random mode","oopsie","very loud inside","WAPALAP"
+],
+curious:[
+"what's that?","interesting...",
+"why?","hmm...","i wonder...",
+"tell me more","looking closely","i am investigating",
+"fascinating","i am curious. OOH SQUIRREL","wait, really?","huh"
+],
+grumpy:[
+"hmph","what.","busy :(","...",
+"maybe later","sigh",
+"annoying","not today","leave me alone","i disagree",
+"bad timing","unimpressed","low patience","ugh","go away"
+],
+excited:[
+"WOAH!","cool!","wow!",
+"awesome!","lets go!","oh yeah!",
+"amazing","big moment","ohhh nice","yippee",
+"so cool","this rules","i love this","party mode","so tuff :P"
+]
+};
+
+const specialMoods = {
+hyper:[
+"WHEEEE!","too much energy!","zoom zoom!","sparkly brain!","!!!",
+"i am unstoppable","full turbo","hyper focus? maybe not"
+],
+dizzy:[
+"whoa...","spinny...","hold on...","the room is wobbling...",":X",
+"everything is sideways","i need a seat","too much swirl"
+]
+};
+
+const extraSpeeches = [
+"i saw that.",
+"that was something.",
+"processing...",
+"tiny opinion: yes.",
+"Underwhite said guy was my friend.",
+"popsicle.",
+"a9 is such a good guy. he made me :P",
+"i am awake-ish.",
+"very normal behavior.",
+"i like html.",
+"this website is crazy.",
+"hello from the tiny corner.",
+"i am thinking in lowercase.",
+"its stuffy in here.",
+"that click was respectful.",
+"small guy reports in.",
+"nothing suspicious here.",
+"i thought heh.",
+"i blinked on purpose.",
+"im little.",
+"you booped me. how dare you.",
+"good " + (hour < 12 ? "morning" : hour < 18 ? "afternoon" : "evening")
+];
+
+let moodNames = Object.keys(moods);
+let mood = moodNames[Math.floor(Math.random()*moodNames.length)];
+let lines = moods[mood];
+let specialMode = false;
+let specialMood = "";
+let clickCount = 0;
+let specialTimer = null;
+
+const shape = [
+"24px",
+"999px",
+"40% 60% 55% 45% / 45% 40% 60% 55%"
+][Math.floor(Math.random()*3)];
+
+bodyEl.style.background =
+colors[Math.floor(Math.random()*colors.length)];
+
+bodyEl.style.borderRadius = shape;
+
+const state = {
+asleep:false,
+lastActivity:Date.now()
+};
+
+function resizeGuy(){
+    const size = Math.min(innerWidth, innerHeight) * 0.8;
+
+    bodyEl.style.width = size + "px";
+    bodyEl.style.height = size + "px";
+
+    bubble.style.width = size + "px";
+
+    bubble.style.fontSize =
+    Math.max(10,size*0.08)+"px";
+
+    guy.style.width=size+"px";
+    guy.style.height=size+"px";
+}
+
+resizeGuy();
+addEventListener("resize",resizeGuy);
+
+function pick(list){
+    return list[Math.floor(Math.random()*list.length)];
+}
+
+function applyFreshMood(){
+    mood = moodNames[Math.floor(Math.random()*moodNames.length)];
+    lines = moods[mood];
+    bodyEl.style.background = pick(colors);
+}
+
+function randomLine(){
+    return lines[Math.floor(Math.random()*lines.length)];
+}
+
+function randomSpeech(){
+    const pool = Math.random() < 0.6 ? lines : extraSpeeches;
+    return pool[Math.floor(Math.random()*pool.length)];
+}
+
+function say(text,time=2200){
+    bubble.textContent=text;
+    bubble.style.display="block";
+
+    clearTimeout(bubble.hideTimer);
+
+    bubble.hideTimer=setTimeout(()=>{
+        if(!state.asleep){
+            bubble.style.display="none";
+        }
+    },time);
+}
+
+function enterSpecialMode(){
+    specialMode = true;
+    specialMood = Math.random() < 0.5 ? "hyper" : "dizzy";
+
+    const specialLine =
+    specialMoods[specialMood][Math.floor(Math.random()*specialMoods[specialMood].length)];
+
+    bodyEl.style.transform =
+    specialMood === "hyper" ? "rotate(12deg)" : "skewX(-12deg) skewY(4deg)";
+
+    say(specialLine,5000);
+
+    if(specialTimer) clearTimeout(specialTimer);
+
+    specialTimer = setTimeout(()=>{
+        specialMode = false;
+        specialMood = "";
+        bodyEl.style.transform = "";
+        applyFreshMood();
+        say(randomLine());
+    },5000);
+}
+
+function wake(){
+    state.lastActivity=Date.now();
+
+    if(state.asleep){
+        state.asleep=false;
+        applyFreshMood();
+        say("oh! hello");
+    }
+}
+
+setTimeout(()=>{
+    say(randomLine());
+},700);
+
+document.addEventListener("mousemove",e=>{
+
+    wake();
+
+    pupils.forEach(pupil=>{
+
+        const eye =
+        pupil.parentElement.getBoundingClientRect();
+
+        const cx = eye.left + eye.width/2;
+        const cy = eye.top + eye.height/2;
+
+        const dx = e.clientX - cx;
+        const dy = e.clientY - cy;
+
+        const len =
+        Math.max(1,Math.hypot(dx,dy));
+
+        const move = 12;
+
+        pupil.style.left =
+        30 + dx/len*move + "%";
+
+        pupil.style.top =
+        30 + dy/len*move + "%";
+    });
+});
+
+guy.addEventListener("click",()=>{
+
+    wake();
+    clickCount += 1;
+
+    if(clickCount >= 5){
+        clickCount = 0;
+        enterSpecialMode();
+        return;
+    }
+
+    say(randomSpeech());
+
+    bodyEl.style.transform="scale(1.05)";
+
+    setTimeout(()=>{
+        if(!specialMode) bodyEl.style.transform="";
+    },120);
+});
+
+function blink(){
+
+    eyes.forEach(e=>e.classList.add("closed"));
+
+    setTimeout(()=>{
+        eyes.forEach(e=>e.classList.remove("closed"));
+    },120);
+}
+
+(function blinkLoop(){
+    setTimeout(()=>{
+        blink();
+        blinkLoop();
+    },1500+Math.random()*4500);
+})();
+
+function createZ(){
+
+    const z=document.createElement("div");
+
+    z.className="sleepZ";
+    z.textContent=
+    ["z","Z","zz","ZZZ"]
+    [Math.floor(Math.random()*4)];
+
+    z.style.left=(Math.random()*50+40)+"%";
+    z.style.top="20%";
+
+    guy.appendChild(z);
+
+    setTimeout(()=>z.remove(),2000);
+}
+
+setInterval(()=>{
+
+    const idle =
+    Date.now()-state.lastActivity;
+
+    if(idle>6000 && !state.asleep){
+
+        state.asleep=true;
+
+        bubble.style.display="block";
+        bubble.textContent="zzz";
+    }
+
+    if(state.asleep){
+        createZ();
+    }
+
+},1000);
+
+const rare = [
+"certified lilguy event",
+"website moment",
+"i found a pixel",
+"beep",
+"thinking..."
+];
+
+function microEvent(){
+
+    if(state.asleep || specialMode) return;
+
+    const r=Math.random();
+
+    if(r<0.12){
+        say("?");
+    }
+    else if(r<0.24){
+        say("...");
+    }
+    else if(r<0.36){
+        say(randomLine());
+    }
+    else if(r<0.46){
+        say(randomSpeech());
+    }
+    else if(r<0.56){
+        say("*thinking*");
+    }
+    else if(r<0.66){
+        say("mood: "+mood);
+    }
+    else if(r<0.76){
+        bodyEl.style.transform="rotate(-4deg)";
+        setTimeout(()=>{ if(!specialMode) bodyEl.style.transform=""; },150);
+    }
+    else if(r<0.97){
+        const convo=[
+            ["hello","how are you?"],
+            ["i like websites","they are neat"],
+            ["hmm","interesting"],
+            ["tiny guy","big feelings"],
+            ["i saw something","what did you see?"],
+            ["good vibes","agreed"]
+        ][Math.floor(Math.random()*6)];
+
+        say(convo[0]);
+
+        setTimeout(()=>{
+            if(!state.asleep && !specialMode) say(convo[1]);
+        },1800);
+    }
+    else{
+        say(rare[Math.floor(Math.random()*rare.length)]);
+    }
+}
+
+(function eventLoop(){
+    setTimeout(()=>{
+        microEvent();
+        eventLoop();
+    },2500+Math.random()*5000);
+})();
+
+(function idleLook(){
+
+    setTimeout(()=>{
+
+        if(!state.asleep){
+
+            pupils.forEach(p=>{
+
+                p.style.left =
+                (25+Math.random()*20)+"%";
+
+                p.style.top =
+                (25+Math.random()*20)+"%";
+            });
+        }
+
+        idleLook();
+
+    },3000+Math.random()*3000);
+
+})();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,109 @@
+<title>hypertype</title>
+<h1>hypertype typing test</h1>
+<div class="hypertypecont">
+<div class="overlayTX">Loading...</div>
+<textarea id="TextareaHH" rows="6" cols="40" disabled></textarea>
+</div>
+<div id="wpcn"><h1 id="wpmcntr">--</h1> WPM</div>
+<button id="restartBtn">Restart</button>
+<style>
+h1 {
+  font-family: sans-serif;
+}
+#wpcn {
+  font-family: sans-serif;
+  font-size:24px;
+  color:#444;
+  display: flex;
+  align-items: flex-end;
+   line-height: 1;
+}
+#wpmcntr{
+  font-family: sans-serif;
+  font-size:36px;
+  color:#444;
+  margin: 0;
+   line-height: 1;
+}
+.hypertypecont {
+position: relative;
+display: inline-block;
+}
+#TextareaHH {
+background: transparent;
+position: relative;
+z-index: 2;
+font-family: monospace;
+font-size: 16px;
+line-height: 1.5;
+padding: 10px;
+box-sizing: border-box;
+resize: none;
+}
+.overlayTX {
+position: absolute;
+top: 0;
+left: 0;
+width: 100%;
+height: 100%;
+z-index: 1;
+color: #aaa;
+font-family: monospace;
+font-size: 16px;
+line-height: 1.5;
+padding: 10px;
+box-sizing: border-box;
+white-space: pre-wrap;
+word-wrap: break-word;
+pointer-events: none;
+}
+#restartBtn {
+display: block;
+margin-top: 10px;
+}
+</style>
+<script>
+const wpmcntr = document.getElementById("wpmcntr");
+let targetText = "";
+let startTime = null;
+let timetake = null;
+const overlay = document.querySelector(".overlayTX");
+const tx = document.getElementById("TextareaHH");
+const btn = document.getElementById("restartBtn");
+//i think the csp blocks random word api
+const fallback = ["apple","banana","orange","grape","cherry","melon","lemon","lime","peach","plum","berry","mango","papaya","kiwi","pear","water","ocean","river","lake","pond","stream","cloud","rain","snow","storm","wind","breeze","sun","moon","star","sky","earth","land","rock","stone","sand","dirt","mud","clay","dust","grass","tree","bush","leaf","root","bark","wood","forest","jungle","desert","mountain","valley","hill","cliff","cave","tunnel","bridge","road","path","street","lane","house","home","room","wall","door","window","floor","roof","gate","fence","yard","garden","park","city","town","village","state","nation","world","space","planet","galaxy","comet","rocket","plane","train","ship","boat","car","truck","bike","bus","wheel","tire","engine","motor","metal","iron","steel","gold","silver","copper","brass","glass","paper","cloth","leather","rubber","plastic","stone","brick","tile","paint","ink","pen","pencil","paper","book","page","word","text","line","note","letter","mail","stamp","card"];
+function loadText() {
+tx.disabled = true;
+tx.value = "";
+startTime = null;
+overlay.textContent = "Loading...";
+fetch("https://random-word-api.herokuapp.com/word?number=10")
+.then(res => res.json())
+.then(words => startTest(words))
+.catch(() => startTest(fallback));
+}
+function startTest(words) {
+let chosen = [];
+for (let i = 0; i < 10; i++) {
+chosen.push(words[Math.floor(Math.random() * words.length)]);
+}
+targetText = chosen.join(" ");
+overlay.textContent = targetText;
+tx.disabled = false;
+tx.focus();
+}
+tx.addEventListener("keydown", (e) => {
+if (!startTime && e.key.length === 1) {
+startTime = performance.now();
+}
+});
+tx.addEventListener("input", () => {
+if (tx.value === targetText) {
+timetake = (performance.now() - startTime) / 1000;
+tx.disabled = true;
+wpmcntr.textContent = Math.round((targetText.length / 5 ) / (timetake / 60));
+}
+});
+btn.addEventListener("click", loadText);
+loadText();
+</script>

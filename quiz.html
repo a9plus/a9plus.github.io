@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The quiz of WONDER!!!!</title>
+    <link href="/style.css" rel="stylesheet" type="text/css" media="all">
+    
+  </head>
+  <body>
+  <div style="position: relative; width: 100vw; height: 100vh; overflow: none;">
+<div id="quizzo" style="
+  position: absolute;
+  top: 30vh;
+  left: 30vw;
+  width: 40vw; 
+  height: 40vh; 
+  border: 4px ridge #38b6ff; 
+  background-color: #feff38;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+"> 
+  <h3 id="question">What is 1 + 1?</h3>
+  <div style="display: flex;
+  flex-wrap: nowrap;">
+  <button id="ans1" style="background-color:#38b6ff ; border 4px dashed #28a6ef; margin: 2px; mouse: pointer;" onclick="buttona();">2</button>
+  <button id="ans2" style="background-color:#38b6ff ; border 4px dashed #28a6ef; margin: 2px; mouse: pointer;" onclick="buttonb();">7</button>
+  </div>
+  <h4 id="result"></h4>
+</div>
+</div>
+<script>
+let currentques = 0;
+let correctans = ["2","false","moon"];
+let falseans = ["7","true","sun"];
+let questions = ["what is 1 + 1?", "is parmesan soft?", "where did the americans go in 1969"]
+let ques = document.getElementById("question");
+let ans1 = document.getElementById("ans1");
+let ans2 = document.getElementById("ans2");
+ques.textContent = questions[currentques];
+ans1.textContent = correctans[currentques];
+ans2.textContent = falseans[currentques];
+let randomnum = 0
+function buttona() {
+    switch (currentques){
+      case 0:
+      right();
+      break;
+      case 1:
+      wrong();
+      break;
+      case 2:
+      wrong();  
+      break;
+      }
+    }
+function buttonb() {
+  switch (currentques){
+      case 0:
+      wrong();
+      break;
+      case 1:
+      right();
+      break;
+      case 2:
+      right();  
+      break;
+      }
+    }
+    
+function right() {
+  document.getElementById("result").textContent = "you got it right!";
+        currentques++;
+  ques.textContent = questions[currentques];
+  switch (currentques) {
+    case 0:
+    ans1.textContent = correctans[currentques];
+    ans2.textContent = falseans[currentques];
+    break;
+    case 1:
+    ans1.textContent = falseans[currentques];
+    ans2.textContent = correctans[currentques];
+    break;
+    case 2:
+    ans1.textContent = falseans[currentques];
+    ans2.textContent = correctans[currentques];
+    break;
+    case 3:
+    ans1.textContent = "you fini";
+    ans2.textContent = "shed!!!!";
+    document.getElementById("result").textContent = ":P";
+        const myButton = document.createElement('button');
+        myButton.innerText = 'do not click me';
+        myButton.onclick = function() {
+            alert('ahhhhh im falling!!!!! you d- didnt... have.. to do.......... this to me. 	ep OPU efdpef fX91JIeid3SmADC5c3WzJISqcXV=');
+        };
+
+        const container = document.getElementById('quizzo');
+        container.appendChild(myButton);
+    break;
+  }
+}
+function wrong() {
+  document.getElementById("result").textContent = "you got it wrong :P";
+}
+</script>
+  </body>
+</html>
