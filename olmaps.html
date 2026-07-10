@@ -1,0 +1,1384 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>OLMaps</title>
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css">
+
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+
+<style>
+
+:root{
+    --bg:#f5f7fb;
+    --panel:#ffffff;
+    --text:#17202a;
+    --muted:#64748b;
+    --button:#b9dcff;
+    --accent:#4da3ff;
+}
+
+
+.dark{
+    --bg:#111827;
+    --panel:#1f2937;
+    --text:#f8fafc;
+    --muted:#cbd5e1;
+    --button:#2563eb;
+}
+
+
+
+*{
+    box-sizing:border-box;
+}
+
+
+body{
+
+    margin:0;
+    height:100dvh;
+    overflow:hidden;
+
+    background:var(--bg);
+    color:var(--text);
+
+    font-family:
+    system-ui,
+    Arial,
+    sans-serif;
+
+}
+
+
+
+#map{
+
+    position:absolute;
+
+    top:0;
+    left:0;
+    right:0;
+
+    height:55%;
+
+}
+
+
+
+.sheet{
+
+    position:absolute;
+
+    bottom:0;
+
+    left:0;
+    right:0;
+
+    height:50%;
+
+    background:var(--panel);
+
+    border-radius:30px 30px 0 0;
+
+    box-shadow:
+    0 -8px 25px #0003;
+
+    padding:20px;
+
+    display:flex;
+    flex-direction:column;
+
+}
+
+
+
+.header{
+
+    display:flex;
+
+    justify-content:space-between;
+
+    align-items:center;
+
+    font-size:22px;
+
+    font-weight:700;
+
+}
+
+
+
+.menu{
+
+    cursor:pointer;
+
+    font-size:30px;
+
+}
+
+
+
+.settings{
+
+    display:none;
+
+    position:absolute;
+
+    right:20px;
+
+    top:65px;
+
+    width:min(300px,90vw);
+
+    background:var(--panel);
+
+    padding:20px;
+
+    border-radius:24px;
+
+    box-shadow:
+    0 8px 30px #0004;
+
+    z-index:20;
+
+}
+
+
+
+.settings.open{
+
+    display:block;
+
+}
+
+
+
+.content{
+
+    flex:1;
+
+    overflow:auto;
+
+}
+
+
+
+.page{
+
+    display:none;
+
+}
+
+
+.page.active{
+
+    display:block;
+
+}
+
+
+
+h2{
+
+    margin-top:20px;
+
+}
+
+
+
+input,select{
+
+    width:100%;
+
+    padding:14px;
+
+    border-radius:16px;
+
+    border:
+
+    1px solid #aaa;
+
+    margin-top:8px;
+
+    background:transparent;
+
+    color:var(--text);
+
+    font-size:16px;
+
+}
+
+
+
+label{
+
+    display:block;
+
+    margin-top:18px;
+
+    font-weight:600;
+
+}
+
+
+
+.option{
+
+    margin-top:12px;
+
+}
+
+
+
+.bottom{
+
+    display:flex;
+
+    justify-content:space-between;
+
+    align-items:center;
+
+}
+
+
+
+.progress{
+
+    display:flex;
+
+    align-items:center;
+
+    gap:8px;
+
+}
+
+
+
+.dot{
+
+    width:11px;
+
+    height:11px;
+
+    border-radius:50%;
+
+    background:#aaa;
+
+}
+
+
+.dot.active{
+
+    background:var(--accent);
+
+}
+
+
+
+.line{
+
+    width:25px;
+
+    height:3px;
+
+    background:#aaa;
+
+}
+
+
+
+button{
+
+    border:0;
+
+    padding:13px 22px;
+
+    border-radius:22px;
+
+    background:var(--button);
+
+    cursor:pointer;
+
+    font-size:16px;
+
+}
+
+
+
+button:hover{
+
+    filter:brightness(.95);
+
+}
+
+
+
+/* MOBILE */
+
+@media(max-width:600px){
+
+
+#map{
+
+    height:45%;
+
+}
+
+
+.sheet{
+
+    height:60%;
+
+}
+
+
+.settings{
+
+    position:fixed;
+
+    bottom:0;
+
+    left:0;
+
+    right:0;
+
+    top:auto;
+
+    width:100%;
+
+    border-radius:30px 30px 0 0;
+
+}
+
+
+}
+
+
+
+/* LARGE */
+
+@media(min-width:1200px){
+
+.sheet{
+
+    left:10%;
+
+    right:10%;
+
+    bottom:20px;
+
+    height:45%;
+
+    border-radius:30px;
+
+}
+
+
+}
+
+
+</style>
+
+</head>
+
+
+<body>
+
+
+<div id="map"></div>
+
+
+<div class="sheet">
+
+
+<div class="header">
+
+<span>
+OLMaps
+</span>
+
+
+<span class="menu" onclick="toggleSettings()">
+⋮
+</span>
+
+
+</div>
+
+
+
+<div class="settings" id="settings">
+
+<h3>Settings</h3>
+
+
+<label>
+Theme
+</label>
+
+<select onchange="setTheme(this.value)">
+
+<option value="light">
+Light
+</option>
+
+<option value="dark">
+Dark
+</option>
+
+</select>
+
+
+<label>
+Units
+</label>
+
+<select id="units">
+
+<option>
+Miles
+</option>
+
+<option>
+Kilometers
+</option>
+
+</select>
+
+
+<label>
+<input type="checkbox" id="darkPrint">
+Dark map for printing
+</label>
+
+
+</div>
+
+
+
+<div class="content">
+
+
+<div class="page active">
+
+
+<h2>Create Trip</h2>
+
+
+<label>
+Start location
+</label>
+
+<input id="start"
+placeholder="Address or current location">
+
+
+<button onclick="useLocation()">
+📍 Use location
+</button>
+
+
+
+<label>
+Destination
+</label>
+
+<input id="destination"
+placeholder="Destination address">
+
+
+<button onclick="findRoute()">
+🗺️ Preview route
+</button>
+
+
+</div>
+<div class="page">
+
+
+<h2>Travel Options</h2>
+
+
+<label>
+Travel mode
+</label>
+
+
+<select id="mode">
+
+<option value="driving">
+🚗 Car
+</option>
+
+<option value="cycling">
+🚲 Bike
+</option>
+
+<option value="walking">
+🚶 Walk
+</option>
+
+
+</select>
+
+
+
+<div class="option">
+<label>
+<input type="checkbox" id="tolls">
+Avoid tolls
+</label>
+</div>
+
+
+<div class="option">
+<label>
+<input type="checkbox" id="highways">
+Avoid highways
+</label>
+</div>
+
+
+<div class="option">
+<label>
+<input type="checkbox" id="residential">
+Residential streets preferred
+</label>
+</div>
+
+
+<div class="option">
+<label>
+<input type="checkbox" id="bike">
+Bike lanes / sidewalks
+</label>
+</div>
+
+
+</div>
+
+
+
+
+<div class="page">
+
+
+<h2>Print Options</h2>
+
+
+<label>
+Layout
+</label>
+
+
+<select id="layout">
+
+<option>
+Folded A7 booklet
+</option>
+
+<option>
+Regular pages
+</option>
+
+<option>
+Pocket format
+</option>
+
+</select>
+
+
+
+<label>
+Ink
+</label>
+
+
+<select id="ink">
+
+<option>
+Color
+</option>
+
+<option>
+Black & White
+</option>
+
+<option>
+Low Ink
+</option>
+
+</select>
+
+
+
+<div class="option">
+
+<label>
+
+<input type="checkbox" checked id="photo">
+
+Destination photo
+
+</label>
+
+</div>
+
+
+
+<div class="option">
+
+<label>
+
+<input type="checkbox" checked>
+
+Overview map
+
+</label>
+
+</div>
+
+
+
+<br>
+
+
+<button onclick="createPDF()">
+
+🖨️ Create Printable Guide
+
+</button>
+
+
+
+</div>
+
+
+</div>
+
+
+
+<div class="bottom">
+
+
+<div class="progress">
+
+<div class="dot active"></div>
+
+<div class="line"></div>
+
+<div class="dot"></div>
+
+<div class="line"></div>
+
+<div class="dot"></div>
+
+</div>
+
+
+
+<button onclick="nextPage()" id="next">
+
+Next →
+
+</button>
+
+
+</div>
+
+
+</div>
+
+
+
+
+
+<script>
+
+
+// ---------------------
+// MAP
+// ---------------------
+
+
+const map =
+L.map("map")
+.setView(
+[40.1037,-75.2071],
+13
+);
+
+
+
+L.tileLayer(
+"https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+{
+
+maxZoom:19,
+
+attribution:
+"© OpenStreetMap"
+
+}
+
+).addTo(map);
+
+
+
+let startPoint=null;
+
+let endPoint=null;
+
+let routeLine=null;
+
+
+
+let pages =
+document.querySelectorAll(".page");
+
+
+let dots =
+document.querySelectorAll(".dot");
+
+
+let currentPage=0;
+
+
+
+// ---------------------
+// SETTINGS
+// ---------------------
+
+
+function toggleSettings(){
+
+document
+.getElementById("settings")
+.classList.toggle("open");
+
+}
+
+
+
+function setTheme(value){
+
+if(value==="dark"){
+
+document.body.classList.add("dark");
+
+}
+
+else{
+
+document.body.classList.remove("dark");
+
+}
+
+}
+
+
+
+// ---------------------
+// LOCATION
+// ---------------------
+
+
+function useLocation(){
+
+navigator.geolocation.getCurrentPosition(
+(pos)=>{
+
+
+startPoint=[
+
+pos.coords.latitude,
+
+pos.coords.longitude
+
+];
+
+
+L.marker(startPoint)
+.addTo(map)
+.bindPopup(
+"Start"
+)
+.openPopup();
+
+
+map.setView(
+startPoint,
+14
+);
+
+
+}
+
+);
+
+
+}
+
+
+
+
+async function searchPlace(query){
+
+
+let url =
+"https://nominatim.openstreetmap.org/search?format=json&q="
++
+encodeURIComponent(query);
+
+
+
+let response =
+await fetch(url);
+
+
+
+let data =
+await response.json();
+
+
+
+if(data.length===0){
+
+alert("Location not found");
+
+return null;
+
+}
+
+
+
+return [
+
+parseFloat(data[0].lat),
+
+parseFloat(data[0].lon)
+
+];
+
+
+}
+
+
+
+
+
+async function findRoute(){
+
+
+let startText =
+document.getElementById("start").value;
+
+
+let destText =
+document.getElementById("destination").value;
+
+
+
+if(!startPoint){
+
+startPoint =
+await searchPlace(startText);
+
+}
+
+
+
+endPoint =
+await searchPlace(destText);
+
+
+
+if(!startPoint || !endPoint)
+return;
+
+
+
+L.marker(startPoint)
+.addTo(map)
+.bindPopup("Start");
+
+
+L.marker(endPoint)
+.addTo(map)
+.bindPopup("Destination");
+
+
+
+map.fitBounds([
+
+startPoint,
+
+endPoint
+
+]);
+
+
+
+getRoute();
+
+
+}
+
+
+
+
+async function getRoute(){
+
+
+
+let mode =
+document.getElementById("mode").value;
+
+
+
+let url =
+
+`https://router.project-osrm.org/route/v1/${mode}/`
++
+
+`${startPoint[1]},${startPoint[0]};${endPoint[1]},${endPoint[0]}`
++
+
+`?overview=full&geometries=geojson`;
+
+
+
+let res =
+await fetch(url);
+
+
+
+let data =
+await res.json();
+
+
+
+let coords =
+data.routes[0]
+.geometry
+.coordinates
+.map(
+(x)=>[
+x[1],
+x[0]
+]
+);
+
+
+
+if(routeLine){
+
+map.removeLayer(routeLine);
+
+}
+
+
+
+routeLine =
+L.polyline(
+coords,
+{
+
+weight:5
+
+}
+
+)
+.addTo(map);
+
+
+
+let distance =
+(data.routes[0].distance/1609.34)
+.toFixed(1);
+
+
+
+let time =
+Math.round(
+data.routes[0].duration/60
+);
+
+
+
+alert(
+`Route:
+${distance} miles
+${time} minutes`
+);
+
+
+
+}
+
+
+
+function nextPage(){
+
+
+if(currentPage < pages.length-1){
+
+
+pages[currentPage]
+.classList.remove("active");
+
+
+dots[currentPage]
+.classList.remove("active");
+
+
+
+currentPage++;
+
+
+
+pages[currentPage]
+.classList.add("active");
+
+
+dots[currentPage]
+.classList.add("active");
+
+
+
+if(currentPage===2){
+
+document
+.getElementById("next")
+.innerHTML=
+"Finish →";
+
+}
+
+
+}
+
+else{
+
+
+createPDF();
+
+
+}
+
+
+}
+
+
+// ---------------------
+// PDF GENERATOR
+// ---------------------
+
+async function createPDF(){
+
+
+const {jsPDF} =
+window.jspdf;
+
+
+
+let pdf =
+new jsPDF({
+
+orientation:"portrait",
+
+unit:"mm",
+
+format:"a4"
+
+});
+
+
+
+let start =
+document.getElementById("start").value
+||
+"Starting point";
+
+
+let destination =
+document.getElementById("destination").value
+||
+"Destination";
+
+
+
+let mode =
+document.getElementById("mode").value;
+
+
+
+let units =
+document.getElementById("units").value;
+
+
+
+pdf.setFontSize(24);
+
+pdf.text(
+"OLMaps",
+20,
+25
+);
+
+
+
+pdf.setFontSize(14);
+
+pdf.text(
+"The world moves fast.",
+20,
+38
+);
+
+
+pdf.text(
+"Your map doesn't have to.",
+20,
+46
+);
+
+
+
+pdf.line(
+20,
+55,
+190,
+55
+);
+
+
+
+pdf.setFontSize(16);
+
+
+pdf.text(
+"Trip",
+20,
+70
+);
+
+
+
+pdf.setFontSize(12);
+
+
+pdf.text(
+"From:",
+20,
+82
+);
+
+
+pdf.text(
+start,
+45,
+82
+);
+
+
+
+pdf.text(
+"To:",
+20,
+92
+);
+
+
+pdf.text(
+destination,
+45,
+92
+);
+
+
+
+pdf.text(
+"Mode: "+mode,
+20,
+105
+);
+
+
+
+pdf.text(
+"Units: "+units,
+20,
+115
+);
+
+
+
+pdf.line(
+20,
+125,
+190,
+125
+);
+
+
+
+pdf.setFontSize(16);
+
+
+pdf.text(
+"Directions",
+20,
+140
+);
+
+
+
+pdf.setFontSize(12);
+
+
+let y=155;
+
+
+
+let directions=[
+
+"Continue on your route",
+
+"Follow the highlighted roads",
+
+"Watch for your destination"
+
+];
+
+
+
+directions.forEach((d,i)=>{
+
+
+pdf.text(
+
+`${i+1}. ${d}`,
+
+20,
+
+y
+
+);
+
+
+y+=12;
+
+
+});
+
+
+
+
+pdf.line(
+20,
+200,
+190,
+200
+);
+
+
+
+pdf.setFontSize(16);
+
+
+pdf.text(
+"Destination",
+20,
+220
+);
+
+
+
+pdf.setFontSize(12);
+
+
+pdf.text(
+destination,
+20,
+235
+);
+
+
+
+pdf.text(
+"📸 Destination photo goes here",
+20,
+250
+);
+
+
+
+pdf.setFontSize(10);
+
+
+pdf.text(
+"Generated with OLMaps",
+20,
+280
+);
+
+
+
+pdf.save(
+"OLMaps-Trip-Guide.pdf"
+);
+
+
+
+}
+
+
+
+// Close menu when clicking outside
+
+document.addEventListener(
+"click",
+function(e){
+
+
+let menu =
+document.getElementById("settings");
+
+
+let button =
+document.querySelector(".menu");
+
+
+
+if(
+
+!menu.contains(e.target)
+&&
+!button.contains(e.target)
+
+){
+
+menu.classList.remove("open");
+
+}
+
+
+}
+
+);
+
+
+
+</script>
+
+
+</body>
+
+</html>
