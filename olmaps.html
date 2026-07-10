@@ -764,191 +764,160 @@ v==="dark"
 
 
 
-async function searchOSM(text,target){
-
-
-let box=
-document.getElementById(target);
-
-
-box.innerHTML=
-"Searching...";
-
-
-try{
-
-
-let url=
-"https://nominatim.openstreetmap.org/search"
-+
-"?format=json"
-+
-"&limit=5"
-+
-"&addressdetails=1"
-+
-"&q="
-+
-encodeURIComponent(text);
-
-
-
-let res=
-await fetch(url);
-
-
-
-let data=
-await res.json();
-
-
-
-box.innerHTML="";
-
-
-
-if(!data.length){
-
-box.innerHTML=
-"<div class='result'>No results</div>";
-
-return;
-
-}
-
-
-
-data.forEach(place=>{
-
-
-let div=
-document.createElement("div");
-
-
-div.className="result";
-
-
-div.innerText=
-place.display_name;
-
-
-
-div.onclick=()=>{
-
-
-let point=[
-
-Number(place.lat),
-
-Number(place.lon)
-
-];
-
-
-
-if(target==="startResults"){
-
-start=point;
-
-}
-else{
-
-end=point;
-
-}
-
-
-
-box.innerHTML="";
-
-
-
-L.marker(point)
-.addTo(map)
-.bindPopup(
-place.display_name
-)
-.openPopup();
-
-
-
-map.setView(
-point,
-16
-);
-
-
+let markers = {
+    start:null,
+    end:null
 };
 
 
+async function geocode(text){
 
-box.appendChild(div);
+    let url =
+    "https://nominatim.openstreetmap.org/search?" +
+    "format=json&limit=5&addressdetails=1&q=" +
+    encodeURIComponent(text);
 
+
+    let res = await fetch(url);
+
+    return await res.json();
+
+}
+
+
+
+function putPin(type, point, name){
+
+    if(markers[type]){
+
+        map.removeLayer(markers[type]);
+
+    }
+
+
+    markers[type] =
+    L.marker(point)
+    .addTo(map)
+    .bindPopup(name);
+
+
+    markers[type].openPopup();
+
+
+    map.setView(point,16);
+
+
+}
+
+
+
+async function searchAndPlace(type){
+
+    let input =
+    document.getElementById(
+        type==="start" ?
+        "startInput":
+        "endInput"
+    );
+
+
+    let text =
+    input.value.trim();
+
+
+    if(!text) return;
+
+
+
+    let results =
+    await geocode(text);
+
+
+
+    if(!results.length){
+
+        alert("No location found");
+
+        return;
+
+    }
+
+
+
+    // If it looks like a normal address,
+    // automatically use the first result
+
+    let place = results[0];
+
+
+    let point=[
+
+        Number(place.lat),
+
+        Number(place.lon)
+
+    ];
+
+
+
+    if(type==="start"){
+
+        start=point;
+
+    }
+    else{
+
+        end=point;
+
+    }
+
+
+
+    putPin(
+
+        type,
+
+        point,
+
+        place.display_name
+
+    );
+
+}
+
+
+
+
+
+document
+.getElementById("startInput")
+.addEventListener(
+"keydown",
+e=>{
+
+    if(e.key==="Enter"){
+
+        searchAndPlace("start");
+
+    }
 
 });
 
 
-}
-
-catch(err){
-
-
-box.innerHTML=
-"<div class='result'>Search failed</div>";
-
-
-console.error(err);
-
-
-}
-
-
-}
-
-
-let searchTimers={};
-
-
-function setupSearch(input,box){
 
 document
-.getElementById(input)
+.getElementById("endInput")
 .addEventListener(
-"input",
-function(){
+"keydown",
+e=>{
 
-clearTimeout(searchTimers[input]);
+    if(e.key==="Enter"){
 
+        searchAndPlace("end");
 
-let value=this.value.trim();
+    }
 
-
-if(value.length<3){
-
-document.getElementById(box).innerHTML="";
-return;
-
-}
-
-
-
-searchTimers[input]=setTimeout(()=>{
-
-searchOSM(
-value,
-box
-);
-
-
-},600);
-
-
-}
-
-);
-
-}
-
+});
 
 
 setupSearch(
