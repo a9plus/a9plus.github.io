@@ -468,7 +468,7 @@ Create Trip
 
 
 <div class="address">
-
+<h3>Write the address in the form of: 123 street rd city state zip country (no commas)</h3>
 
 <h3>
 Start
@@ -1254,43 +1254,32 @@ min%60
 
 function next(){
 
-
-if(current < pages.length-1){
-
-
-pages[current]
-.classList.remove("active");
+    console.log("Next clicked", current);
 
 
-dots[current]
-.classList.remove("active");
+    if(current < pages.length - 1){
+
+        pages[current].classList.remove("active");
+
+        dots[current].classList.remove("active");
 
 
-
-current++;
-
+        current++;
 
 
-pages[current]
-.classList.add("active");
+        pages[current].classList.add("active");
+
+        dots[current].classList.add("active");
 
 
-dots[current]
-.classList.add("active");
+    }
+    else{
 
+        makeRoute();
 
-
-}else{
-
-
-makeRoute();
-
+    }
 
 }
-
-
-}
-
 
 async function pdf(){
 
