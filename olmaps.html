@@ -767,11 +767,27 @@ v==="dark"
 async function searchOSM(text,target){
 
 
-if(text.length<3)return;
+let box=
+document.getElementById(target);
+
+
+box.innerHTML=
+"Searching...";
+
+
+try{
 
 
 let url=
-"https://nominatim.openstreetmap.org/search?format=json&limit=5&q="
+"https://nominatim.openstreetmap.org/search"
++
+"?format=json"
++
+"&limit=5"
++
+"&addressdetails=1"
++
+"&q="
 +
 encodeURIComponent(text);
 
@@ -787,21 +803,30 @@ await res.json();
 
 
 
-let box=
-document.getElementById(target);
-
-
-
 box.innerHTML="";
+
+
+
+if(!data.length){
+
+box.innerHTML=
+"<div class='result'>No results</div>";
+
+return;
+
+}
 
 
 
 data.forEach(place=>{
 
 
-let div=document.createElement("div");
+let div=
+document.createElement("div");
+
 
 div.className="result";
+
 
 div.innerText=
 place.display_name;
@@ -812,17 +837,25 @@ div.onclick=()=>{
 
 
 let point=[
-parseFloat(place.lat),
-parseFloat(place.lon)
+
+Number(place.lat),
+
+Number(place.lon)
+
 ];
 
 
 
-if(target==="startResults")
+if(target==="startResults"){
+
 start=point;
 
-else
+}
+else{
+
 end=point;
+
+}
 
 
 
@@ -831,12 +864,18 @@ box.innerHTML="";
 
 
 L.marker(point)
-.addTo(map);
+.addTo(map)
+.bindPopup(
+place.display_name
+)
+.openPopup();
 
 
 
-map.setView(point,15);
-
+map.setView(
+point,
+16
+);
 
 
 };
@@ -851,23 +890,75 @@ box.appendChild(div);
 
 }
 
+catch(err){
 
+
+box.innerHTML=
+"<div class='result'>Search failed</div>";
+
+
+console.error(err);
+
+
+}
+
+
+}
+
+
+let searchTimers={};
+
+
+function setupSearch(input,box){
 
 document
-.getElementById("startInput")
-.oninput=e=>
+.getElementById(input)
+.addEventListener(
+"input",
+function(){
+
+clearTimeout(searchTimers[input]);
+
+
+let value=this.value.trim();
+
+
+if(value.length<3){
+
+document.getElementById(box).innerHTML="";
+return;
+
+}
+
+
+
+searchTimers[input]=setTimeout(()=>{
+
 searchOSM(
-e.target.value,
+value,
+box
+);
+
+
+},600);
+
+
+}
+
+);
+
+}
+
+
+
+setupSearch(
+"startInput",
 "startResults"
 );
 
 
-
-document
-.getElementById("endInput")
-.oninput=e=>
-searchOSM(
-e.target.value,
+setupSearch(
+"endInput",
 "endResults"
 );
 
