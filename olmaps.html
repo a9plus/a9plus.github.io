@@ -502,7 +502,14 @@ Set Start
 </div>
 
 
+<button onclick="addMiddlepoint()">
+<span class="material-icons">
+add
+</span>
+Add middlepoint
+</button>
 
+<div id="middlepoints"></div>
 
 
 <div class="address">
@@ -711,7 +718,8 @@ setTimeout(
 window.onresize=()=>map.invalidateSize();
 
 
-
+let middlepoints = [];
+    
 let start=null;
 
 let end=null;
@@ -980,11 +988,80 @@ start,
 
 
 
+function addMiddlepoint(){
 
+let id =
+middlepoints.length;
+
+
+middlepoints.push({
+number:"",
+street:"",
+city:"",
+state:"",
+zip:"",
+country:""
+});
+
+
+let box =
+document.createElement("div");
+
+box.className="address";
+
+box.id="mid"+id;
+
+
+box.innerHTML=`
+
+<h3>
+Middlepoint ${id+1}
+</h3>
+
+<input placeholder="Number" id="m${id}Num">
+
+<input placeholder="Street" id="m${id}Street">
+
+<input placeholder="City" id="m${id}City">
+
+<input placeholder="State" id="m${id}State">
+
+<input placeholder="ZIP" id="m${id}Zip">
+
+<input placeholder="Country" id="m${id}Country">
+
+
+<button onclick="removeMiddlepoint(${id})">
+Remove
+</button>
+
+`;
+
+
+document
+.getElementById("middlepoints")
+.appendChild(box);
+
+}
+    function removeMiddlepoint(id){
+
+let box =
+document.getElementById(
+"mid"+id
+);
+
+
+if(box){
+
+box.remove();
+
+}
+
+
+}
 
 
 async function makeRoute(){
-
 
 if(!start || !end){
 
@@ -997,19 +1074,60 @@ return;
 }
 
 
-
 let mode =
 document.getElementById("mode").value;
 
 
 
+// Build the complete trip order
+
+let points = [
+    start
+];
+
+
+// Add middlepoints if they exist
+
+for(let i = 0; i < middlepoints.length; i++){
+
+    let p = middlepoints[i].coords;
+
+    if(p){
+
+        points.push(p);
+
+    }
+
+}
+
+
+// Finish with destination
+
+points.push(end);
+
+
+
+
+// Convert to OSRM format
+
+let coords =
+points
+.map(
+p => `${p[1]},${p[0]}`
+)
+.join(";");
+
+
+
 let url =
 
-`https://router.project-osrm.org/route/v1/${mode}/`
+`https://router.project-osrm.org/route/v1/${mode}/${coords}`
 +
-`${start[1]},${start[0]};${end[1]},${end[0]}`
+`?overview=full`
 +
-`?overview=full&steps=true&geometries=geojson`;
+`&steps=true`
++
+`&geometries=geojson`;
 
 
 
@@ -1025,7 +1143,9 @@ await res.json();
 
 if(!data.routes){
 
-alert("No route found");
+alert(
+"No route found"
+);
 
 return;
 
@@ -1038,15 +1158,20 @@ data.routes[0];
 
 
 
-info.distance=r.distance;
+info.distance =
+r.distance;
 
-info.time=r.duration;
+
+info.time =
+r.duration;
 
 
 
 steps=[];
 
 
+
+// Collect every instruction from every leg
 
 r.legs.forEach(leg=>{
 
@@ -1059,11 +1184,10 @@ steps.push({
 text:
 makeInstruction(step),
 
+
 distance:
 step.distance
 
-});
-
 
 });
 
@@ -1071,8 +1195,13 @@ step.distance
 });
 
 
+});
 
-let coords =
+
+
+
+
+let coordsOnMap =
 r.geometry.coordinates.map(
 c=>[
 c[1],
@@ -1092,7 +1221,7 @@ map.removeLayer(route);
 
 route =
 L.polyline(
-coords,
+coordsOnMap,
 {
 
 weight:6
@@ -1112,17 +1241,25 @@ route.getBounds()
 
 alert(
 
-"Route created!\n\n"+
-distanceText(info.distance)+
-"\n"+
+"Route created!\n\n"
++
+distanceText(info.distance)
++
+"\n"
++
 timeText(info.time)
++
+"\n"
++
+points.length
++
+" stops"
 
 );
 
 
 
 }
-
 
 
 
