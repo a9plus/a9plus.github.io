@@ -772,15 +772,42 @@ let markers = {
 
 async function geocode(text){
 
-    let url =
-    "https://nominatim.openstreetmap.org/search?" +
-    "format=json&limit=5&addressdetails=1&q=" +
+    const url =
+    "https://nominatim.openstreetmap.org/search" +
+    "?format=json" +
+    "&limit=1" +
+    "&addressdetails=1" +
+    "&q=" +
     encodeURIComponent(text);
 
 
-    let res = await fetch(url);
+    try {
 
-    return await res.json();
+        const res = await fetch(url, {
+            headers:{
+                "Accept":"application/json"
+            }
+        });
+
+
+        if(!res.ok){
+            throw new Error("Nominatim failed");
+        }
+
+
+        const data = await res.json();
+
+
+        return data;
+
+
+    } catch(err){
+
+        console.error(err);
+
+        return [];
+
+    }
 
 }
 
@@ -815,9 +842,9 @@ async function searchAndPlace(type){
 
     let input =
     document.getElementById(
-        type==="start" ?
-        "startInput":
-        "endInput"
+        type==="start"
+        ? "startInput"
+        : "endInput"
     );
 
 
@@ -825,8 +852,9 @@ async function searchAndPlace(type){
     input.value.trim();
 
 
-    if(!text) return;
-
+    if(text.length < 3){
+        return;
+    }
 
 
     let results =
@@ -834,9 +862,11 @@ async function searchAndPlace(type){
 
 
 
-    if(!results.length){
+    if(results.length === 0){
 
-        alert("No location found");
+        alert(
+            "Couldn't find: " + text
+        );
 
         return;
 
@@ -844,10 +874,9 @@ async function searchAndPlace(type){
 
 
 
-    // If it looks like a normal address,
-    // automatically use the first result
+    let place =
+    results[0];
 
-    let place = results[0];
 
 
     let point=[
@@ -884,7 +913,6 @@ async function searchAndPlace(type){
     );
 
 }
-
 
 
 
