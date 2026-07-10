@@ -732,6 +732,7 @@ let info={};
 
 let markers={};
 
+let destinationName="";
 
 let pages=
 document.querySelectorAll(".page");
@@ -897,7 +898,12 @@ async function findAddress(type){
     let result =
     await geocode(address);
 
+    if(type==="end"){
 
+    destinationName =
+    result.name || result.display_name;
+
+}
 
     if(!result){
 
@@ -1436,9 +1442,24 @@ return(
 
 }
 
+function shortDistance(m){
 
+    return (
+        (m / 1609.34).toFixed(1)
+        +
+        "-mi"
+    );
 
+}
 
+function cleanFileName(name){
+
+    return name
+    .replace(/[^a-z0-9]/gi,"-")
+    .replace(/-+/g,"-")
+    .replace(/^-|-$/g,"");
+
+}
 
 function timeText(s){
 
@@ -1503,63 +1524,89 @@ function next(){
 
 async function pdf(){
 
-
 if(!steps.length){
 
 await makeRoute();
 
-
 if(!steps.length){
 
-alert(
-"Make a route first"
-);
-
+alert("Make a route first");
 return;
 
 }
 
-
 }
 
 
-
-const {jsPDF} =
-window.jspdf;
-
+const {jsPDF}=window.jspdf;
 
 
 let doc =
-new jsPDF();
+new jsPDF({
+
+orientation:"portrait",
+
+unit:"mm",
+
+format:"a4"
+
+});
 
 
 
-let y=25;
+let margin=12;
+
+let pageWidth=210;
+
+let pageHeight=297;
+
+
+let columnWidth=85;
 
 
 
-function write(text,size=12){
+let column=0;
+
+let y=18;
 
 
-doc.setFontSize(size);
 
+function footer(){
 
-let lines =
-doc.splitTextToSize(
-text,
-170
-);
-
+doc.setFontSize(8);
 
 doc.text(
-lines,
-20,
-y
+"OLMaps",
+pageWidth-25,
+pageHeight-8
 );
 
+}
 
-y +=
-(lines.length*7)+5;
+
+
+function nextColumn(){
+
+
+column++;
+
+
+if(column>1){
+
+
+footer();
+
+
+doc.addPage();
+
+
+column=0;
+
+
+}
+
+
+y=18;
 
 
 }
@@ -1567,68 +1614,45 @@ y +=
 
 
 
+function xPos(){
 
-write(
-"OLMaps",
-26
+return margin + column*95;
+
+}
+
+
+
+
+// HEADER
+
+doc.setFontSize(18);
+
+
+doc.text(
+
+distanceText(info.distance)
++
+"  •  "
++
+timeText(info.time),
+
+margin,
+
+12
+
 );
 
-
-write(
-"The world moves fast.\nYour map doesn't have to.",
-14
-);
-
-
-
-y+=5;
 
 
 
 doc.line(
-20,
-y,
-190,
-y
+margin,
+15,
+pageWidth-margin,
+15
 );
 
 
-
-y+=10;
-
-
-
-write(
-"TRIP GUIDE",
-18
-);
-
-
-
-write(
-"Distance: "
-+
-distanceText(info.distance)
-);
-
-
-
-write(
-"Time: "
-+
-timeText(info.time)
-);
-
-
-
-y+=5;
-
-
-
-write(
-"DIRECTIONS",
-18
-);
 
 
 
@@ -1639,25 +1663,52 @@ let num=1;
 for(let s of steps){
 
 
-if(y>270){
+
+let text =
+num+
+". "+
+s.text+
+"\n"+
+distanceText(s.distance);
 
 
-doc.addPage();
 
-y=25;
+doc.setFontSize(10);
 
+
+
+let lines =
+doc.splitTextToSize(
+text,
+columnWidth
+);
+
+
+
+let needed =
+(lines.length*5)+4;
+
+
+
+// Move column if full
+
+if(y+needed > pageHeight-15){
+
+nextColumn();
 
 }
 
 
 
-write(
-num+
-". "+
-s.text+
-"\n"+
-distanceText(s.distance)
+doc.text(
+lines,
+xPos(),
+y
 );
+
+
+
+y += needed;
 
 
 
@@ -1668,38 +1719,23 @@ num++;
 
 
 
-y+=10;
-
-
-
-doc.line(
-20,
-y,
-190,
-y
-);
-
-
-
-y+=10;
-
-
-
-write(
-"Generated with OLMaps",
-10
-);
+footer();
 
 
 
 doc.save(
-"OLMaps-Trip-Guide.pdf"
+shortDistance(info.distance)
++
+"-trip-to-"
++
+cleanFileName(destinationName)
++
+".pdf"
 );
 
 
 
 }
-
 
 
 
