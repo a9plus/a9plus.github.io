@@ -730,6 +730,7 @@ let steps=[];
 
 let info={};
 
+let markers={};
 
 
 let pages=
@@ -836,18 +837,11 @@ let endMarker=null;
 function placeMarker(type,point,text){
 
 
-    if(type==="start" && startMarker){
+    if(markers[type]){
 
-        map.removeLayer(startMarker);
+map.removeLayer(markers[type]);
 
-    }
-
-
-    if(type==="end" && endMarker){
-
-        map.removeLayer(endMarker);
-
-    }
+}
 
 
 
@@ -874,7 +868,7 @@ function placeMarker(type,point,text){
 
 
     map.setView(point,15);
-
+markers[type]=marker;
 
 }
 
@@ -990,26 +984,23 @@ start,
 
 function addMiddlepoint(){
 
-let id =
-middlepoints.length;
+let id = middlepoints.length;
 
 
 middlepoints.push({
-number:"",
-street:"",
-city:"",
-state:"",
-zip:"",
-country:""
+    coords:null
 });
 
 
 let box =
 document.createElement("div");
 
+
 box.className="address";
 
+
 box.id="mid"+id;
+
 
 
 box.innerHTML=`
@@ -1018,32 +1009,124 @@ box.innerHTML=`
 Middlepoint ${id+1}
 </h3>
 
-<input placeholder="Number" id="m${id}Num">
 
-<input placeholder="Street" id="m${id}Street">
+<input id="m${id}Num" placeholder="Number">
 
-<input placeholder="City" id="m${id}City">
+<input id="m${id}Street" placeholder="Street">
 
-<input placeholder="State" id="m${id}State">
+<input id="m${id}City" placeholder="City">
 
-<input placeholder="ZIP" id="m${id}Zip">
+<input id="m${id}State" placeholder="State">
 
-<input placeholder="Country" id="m${id}Country">
+<input id="m${id}Zip" placeholder="ZIP">
+
+<input id="m${id}Country" placeholder="Country">
+
+
+
+<button onclick="setMiddlepoint(${id})">
+
+<span class="material-icons">
+location_on
+</span>
+
+Set Middlepoint
+
+</button>
+
 
 
 <button onclick="removeMiddlepoint(${id})">
+
+<span class="material-icons">
+delete
+</span>
+
 Remove
+
 </button>
 
 `;
+
 
 
 document
 .getElementById("middlepoints")
 .appendChild(box);
 
+
+}async function setMiddlepoint(id){
+
+
+let address = [
+
+document.getElementById(`m${id}Num`).value,
+
+document.getElementById(`m${id}Street`).value,
+
+document.getElementById(`m${id}City`).value,
+
+document.getElementById(`m${id}State`).value,
+
+document.getElementById(`m${id}Zip`).value,
+
+document.getElementById(`m${id}Country`).value
+
+].join(" ");
+
+
+
+let result =
+await geocode(address);
+
+
+
+if(!result){
+
+alert(
+"Middlepoint not found:\n\n"
++
+address
+);
+
+return;
+
 }
-    function removeMiddlepoint(id){
+
+
+
+let point=[
+
+Number(result.lat),
+
+Number(result.lon)
+
+];
+
+
+
+middlepoints[id].coords = point;
+
+
+
+placeMarker(
+
+"mid"+id,
+
+point,
+
+"Middlepoint "+(id+1)
+
+);
+
+
+
+alert(
+"Middlepoint "+(id+1)+" set!"
+);
+
+
+}    function removeMiddlepoint(id){
 
 let box =
 document.getElementById(
