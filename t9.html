@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<!-- I made good comments that make sense-->
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HTML T9 Text Input Keyboard</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            background-color: #f4f4f9;
+            margin: 0;
+            user-select: none;
+        }
+
+        .phone-container {
+            background-color: #222;
+            padding: 20px;
+            border-radius: 24px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            width: 300px;
+        }
+
+        /* Screen setup showing current typed text and predictive suggestion */
+        .screen {
+            background-color: #9bbc0f; /* Classic retro green screen look */
+            color: #0f380f;
+            font-family: monospace;
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border: 4px solid #444;
+        }
+
+        #text-output {
+            width: 100%;
+            height: 60px;
+            font-size: 18px;
+            border: none;
+            background: transparent;
+            resize: none;
+            outline: none;
+            color: #0f380f;
+            font-weight: bold;
+        }
+
+        .suggestion-bar {
+            height: 25px;
+            border-top: 1px dashed #0f380f;
+            display: flex;
+            align-items: center;
+            font-size: 14px;
+            font-weight: bold;
+            overflow-x: auto;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+        }
+
+        button {
+            height: 65px;
+            background: linear-gradient(135deg, #444, #333);
+            color: white;
+            border: 1px solid #222;
+            border-radius: 12px;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.2), 0 4px 5px rgba(0,0,0,0.4);
+        }
+
+        button:active {
+            background: #222;
+            box-shadow: inset 0 2px 5px rgba(0,0,0,0.6);
+            transform: translateY(1px);
+        }
+
+        button .num {
+            font-size: 22px;
+            font-weight: bold;
+        }
+
+        button .letters {
+            font-size: 10px;
+            color: #bbb;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-top: 2px;
+        }
+
+        /* Styling for functional control keys */
+        button.action-btn {
+            background: linear-gradient(135deg, #666, #556);
+        }
+        button.space-btn {
+            background: linear-gradient(135deg, #555, #444);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="phone-container">
+        <!-- Display Screen -->
+        <div class="screen">
+            <textarea id="text-output" readonly placeholder="Type numbers..."></textarea>
+            <div class="suggestion-bar" id="suggestion-bar">Word: </div>
+        </div>
+
+        <!-- T9 Keypad Layout -->
+        <div class="grid">
+            <button class="action-btn" onclick="clearAll()">
+                <span class="num">C</span>
+                <span class="letters">Clear</span>
+            </button>
+            <button onclick="pressNum('2')">
+                <span class="num">2</span>
+                <span class="letters">abc</span>
+            </button>
+            <button onclick="pressNum('3')">
+                <span class="num">3</span>
+                <span class="letters">def</span>
+            </button>
+
+            <button onclick="pressNum('4')">
+                <span class="num">4</span>
+                <span class="letters">ghi</span>
+            </button>
+            <button onclick="pressNum('5')">
+                <span class="num">5</span>
+                <span class="letters">jkl</span>
+            </button>
+            <button onclick="pressNum('6')">
+                <span class="num">6</span>
+                <span class="letters">mno</span>
+            </button>
+
+            <button onclick="pressNum('7')">
+                <span class="num">7</span>
+                <span class="letters">pqrs</span>
+            </button>
+            <button onclick="pressNum('8')">
+                <span class="num">8</span>
+                <span class="letters">tuv</span>
+            </button>
+            <button onclick="pressNum('9')">
+                <span class="num">9</span>
+                <span class="letters">wxyz</span>
+            </button>
+
+            <!-- Cycle through matches / Star key -->
+            <button class="action-btn" onclick="cycleWords()">
+                <span class="num">*</span>
+                <span class="letters">Next</span>
+            </button>
+            <!-- Space / 0 Key -->
+            <button class="space-btn" onclick="pressSpace()">
+                <span class="num">0</span>
+                <span class="letters">Space ␣</span>
+            </button>
+            <!-- Backspace key -->
+            <button class="action-btn" onclick="backspace()">
+                <span class="num">⌫</span>
+                <span class="letters">Back</span>
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // A mini sample dictionary for classic T9 mapping demo
+        const t9Dictionary = {
+            "2665": ["book", "cool", "cook"],
+            "43556": ["hello"],
+            "4663": ["good", "home", "hood"],
+            "843": ["the"],
+            "968": ["you"],
+            "27339": ["breezy"],
+            "3278": ["fast"],
+            "753273": ["please"],
+            "9675": ["work"],
+            "4764726": ["program"]
+        };
+
+        let currentSequence = ""; // Stores sequence of numbers for the current word
+        let textHistory = "";     // Stores completed words/sentences
+        let currentMatchIndex = 0;
+
+        const textOutput = document.getElementById('text-output');
+        const suggestionBar = document.getElementById('suggestion-bar');
+
+        function pressNum(num) {
+            currentSequence += num;
+            currentMatchIndex = 0; // Reset match index to first option
+            updateDisplay();
+        }
+
+        function cycleWords() {
+            if (currentSequence.length === 0) return;
+            
+            const matches = t9Dictionary[currentSequence] || [];
+            if (matches.length > 1) {
+                currentMatchIndex = (currentMatchIndex + 1) % matches.length;
+                updateDisplay();
+            }
+        }
+
+        function pressSpace() {
+            // Commit the current active prediction to history
+            const matches = t9Dictionary[currentSequence] || [currentSequence];
+            const activeWord = matches[currentMatchIndex] || currentSequence;
+            
+            textHistory += (textHistory ? " " : "") + activeWord;
+            currentSequence = "";
+            currentMatchIndex = 0;
+            updateDisplay();
+        }
+
+        function backspace() {
+            if (currentSequence.length > 0) {
+                // Remove last digit from active sequence
+                currentSequence = currentSequence.slice(0, -1);
+                currentMatchIndex = 0;
+            } else if (textHistory.length > 0) {
+                // If no active sequence, delete from history string instead
+                const words = textHistory.split(" ");
+                words.pop();
+                textHistory = words.join(" ");
+            }
+            updateDisplay();
+        }
+
+        function clearAll() {
+            currentSequence = "";
+            textHistory = "";
+            currentMatchIndex = 0;
+            updateDisplay();
+        }
+
+        function updateDisplay() {
+            // Find matched words or fallback to displaying raw numbers
+            const matches = t9Dictionary[currentSequence] || [];
+            const activeWord = matches[currentMatchIndex] || currentSequence;
+
+            // Combine previous text with what is currently being typed
+            const fullOutput = textHistory + (textHistory && activeWord ? " " : "") + activeWord;
+            textOutput.value = fullOutput;
+
+            // Update the retro status/suggestion layout bar
+            if (currentSequence.length > 0) {
+                if (matches.length > 0) {
+                    suggestionBar.textContent = `Match (${currentMatchIndex + 1}/${matches.length}): ${matches.join(', ')}`;
+                } else {
+                    suggestionBar.textContent = "No matches (Raw Code)";
+                }
+            } else {
+                suggestionBar.textContent = "Word: ";
+            }
+            
+            // Auto-scroll layout screen text down
+            textOutput.scrollTop = textOutput.scrollHeight;
+        }
+    </script>
+
+</body>
+</html>
