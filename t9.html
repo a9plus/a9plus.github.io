@@ -1,10 +1,9 @@
 <!DOCTYPE html>
-<!-- I made good comments that make sense-->
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HTML T9 Text Input Keyboard</title>
+    <title>MOSSt9</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -13,50 +12,50 @@
             align-items: center;
             justify-content: center;
             min-height: 100vh;
-            background-color: #f4f4f9;
+            background-color: #eef2f7;
             margin: 0;
             user-select: none;
         }
 
         .phone-container {
-            background-color: #222;
+            background-color: #2b303a;
             padding: 20px;
             border-radius: 24px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-            width: 300px;
+            box-shadow: 0 12px 35px rgba(0,0,0,0.3);
+            width: 320px;
         }
 
-        /* Screen setup showing current typed text and predictive suggestion */
         .screen {
-            background-color: #9bbc0f; /* Classic retro green screen look */
-            color: #0f380f;
+            background-color: #a3c9a8; 
+            color: #1c311c;
             font-family: monospace;
-            padding: 10px;
+            padding: 12px;
             border-radius: 8px;
             margin-bottom: 20px;
-            border: 4px solid #444;
+            border: 4px solid #1a1e24;
         }
 
         #text-output {
             width: 100%;
-            height: 60px;
+            height: 70px;
             font-size: 18px;
             border: none;
             background: transparent;
             resize: none;
             outline: none;
-            color: #0f380f;
+            color: #1c311c;
             font-weight: bold;
         }
 
         .suggestion-bar {
             height: 25px;
-            border-top: 1px dashed #0f380f;
+            border-top: 1px dashed #1c311c;
             display: flex;
             align-items: center;
-            font-size: 14px;
+            font-size: 12px;
             font-weight: bold;
             overflow-x: auto;
+            white-space: nowrap;
         }
 
         .grid {
@@ -67,21 +66,21 @@
 
         button {
             height: 65px;
-            background: linear-gradient(135deg, #444, #333);
+            background: linear-gradient(135deg, #4f5d75, #374151);
             color: white;
-            border: 1px solid #222;
+            border: 1px solid #1a1e24;
             border-radius: 12px;
             cursor: pointer;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            box-shadow: inset 0 1px 0 rgba(255,255,255,0.2), 0 4px 5px rgba(0,0,0,0.4);
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.2), 0 4px 6px rgba(0,0,0,0.3);
         }
 
         button:active {
-            background: #222;
-            box-shadow: inset 0 2px 5px rgba(0,0,0,0.6);
+            background: #2d3748;
+            box-shadow: inset 0 2px 5px rgba(0,0,0,0.5);
             transform: translateY(1px);
         }
 
@@ -92,35 +91,46 @@
 
         button .letters {
             font-size: 10px;
-            color: #bbb;
+            color: #d1d5db;
             text-transform: uppercase;
             letter-spacing: 1px;
             margin-top: 2px;
         }
 
-        /* Styling for functional control keys */
-        button.action-btn {
-            background: linear-gradient(135deg, #666, #556);
+        button.action-btn { background: linear-gradient(135deg, #ef4444, #dc2626); }
+        button.next-btn { background: linear-gradient(135deg, #3b82f6, #2563eb); }
+        button.space-btn { background: linear-gradient(135deg, #4b5563, #374151); }
+        button.mode-btn {
+            background: linear-gradient(135deg, #10b981, #059669);
+            transition: all 0.2s ease;
         }
-        button.space-btn {
-            background: linear-gradient(135deg, #555, #444);
+        button.mode-btn.active {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            animation: pulse 1s infinite alternate;
+        }
+
+        button.save-btn {
+            background: linear-gradient(135deg, #8b5cf6, #6d28d9);
+            animation: pulse 0.8s infinite alternate;
+        }
+
+        @keyframes pulse {
+            from { opacity: 0.8; }
+            to { opacity: 1; }
         }
     </style>
 </head>
 <body>
-
     <div class="phone-container">
-        <!-- Display Screen -->
         <div class="screen">
-            <textarea id="text-output" readonly placeholder="Type numbers..."></textarea>
-            <div class="suggestion-bar" id="suggestion-bar">Word: </div>
+            <textarea id="text-output" readonly placeholder="Loading API dictionary..."></textarea>
+            <div class="suggestion-bar" id="suggestion-bar">Status: Initializing firmware...</div>
         </div>
 
-        <!-- T9 Keypad Layout -->
         <div class="grid">
-            <button class="action-btn" onclick="clearAll()">
-                <span class="num">C</span>
-                <span class="letters">Clear</span>
+            <button class="mode-btn" id="mode-btn" onclick="toggleMode()">
+                <span class="num">1</span>
+                <span class="letters" id="mode-label">Mode: T9</span>
             </button>
             <button onclick="pressNum('2')">
                 <span class="num">2</span>
@@ -157,118 +167,213 @@
                 <span class="letters">wxyz</span>
             </button>
 
-            <!-- Cycle through matches / Star key -->
-            <button class="action-btn" onclick="cycleWords()">
+            <button id="utility-btn" class="next-btn" onclick="cycleWords()">
                 <span class="num">*</span>
-                <span class="letters">Next</span>
+                <span class="letters" id="utility-label">Next Match</span>
             </button>
-            <!-- Space / 0 Key -->
             <button class="space-btn" onclick="pressSpace()">
                 <span class="num">0</span>
                 <span class="letters">Space ␣</span>
             </button>
-            <!-- Backspace key -->
-            <button class="action-btn" onclick="backspace()">
+            <button class="space-btn" onclick="backspace()">
                 <span class="num">⌫</span>
                 <span class="letters">Back</span>
             </button>
         </div>
     </div>
-
     <script>
-        // A mini sample dictionary for classic T9 mapping demo
-        const t9Dictionary = {
-            "2665": ["book", "cool", "cook"],
-            "43556": ["hello"],
-            "4663": ["good", "home", "hood"],
-            "843": ["the"],
-            "968": ["you"],
-            "27339": ["breezy"],
-            "3278": ["fast"],
-            "753273": ["please"],
-            "9675": ["work"],
-            "4764726": ["program"]
+        var t9Map = {
+            '2': ['a', 'b', 'c'], '3': ['d', 'e', 'f'],
+            '4': ['g', 'h', 'i'], '5': ['j', 'k', 'l'], '6': ['m', 'n', 'o'],
+            '7': ['p', 'q', 'r', 's'], '8': ['t', 'u', 'v'], '9': ['w', 'x', 'y', 'z']
         };
 
-        let currentSequence = ""; // Stores sequence of numbers for the current word
-        let textHistory = "";     // Stores completed words/sentences
-        let currentMatchIndex = 0;
+        var wordFrequencies = {};
+        var t9Dictionary = {}; 
+        var currentSequence = ''; 
+        var textHistory = '';     
+        var currentMatchIndex = 0;
+        var singleDigitOverride = false; 
 
-        const textOutput = document.getElementById('text-output');
-        const suggestionBar = document.getElementById('suggestion-bar');
+        var textOutput = document.getElementById('text-output');
+        var suggestionBar = document.getElementById('suggestion-bar');
+        var modeLabel = document.getElementById('mode-label');
+        var modeBtn = document.getElementById('mode-btn');
+        var utilityBtn = document.getElementById('utility-btn');
+        var utilityLabel = document.getElementById('utility-label');
+
+        function loadRemoteDictionary() {
+            fetch('https://githubusercontent.com')
+                .then(function(response) {
+                    if (!response.ok) throw new Error('Network issue');
+                    return response.text();
+                })
+                .then(function(textData) {
+                    var wordsArray = textData.split('\n').map(function(w) { 
+                        return w.trim().toLowerCase(); 
+                    }).filter(function(w) { 
+                        return w.length > 0; 
+                    });
+                    
+                    wordsArray.forEach(function(word, index) {
+                        wordFrequencies[word] = 10000 - index;
+                    });
+
+                    compileT9Map(wordsArray);
+                    textOutput.placeholder = 'Type numbers...';
+                    suggestionBar.textContent = 'T9 Ready. 10k words optimized.';
+                })
+                .catch(function(error) {
+                    console.error('Failed to load dictionary:', error);
+                    var fallbacks = ['the', 'hello', 'good', 'home', 'book', 'cool', 'work', 'program', 'today', 'please'];
+                    fallbacks.forEach(function(word, index) { 
+                        wordFrequencies[word] = 10 - index; 
+                    });
+                    compileT9Map(fallbacks);
+                    suggestionBar.textContent = 'Emergency Offline T9 Ready.';
+                });
+        }
+
+        function compileT9Map(words) {
+            var letterToDigit = {};
+            Object.keys(t9Map).forEach(function(digit) {
+                t9Map[digit].forEach(function(letter) { 
+                    letterToDigit[letter] = digit; 
+                });
+            });
+
+            words.forEach(function(word) {
+                var numericSequence = '';
+                for (var i = 0; i < word.length; i++) {
+                    var digit = letterToDigit[word[i]];
+                    if (digit) numericSequence += digit;
+                }
+                if (numericSequence) {
+                    if (!t9Dictionary[numericSequence]) t9Dictionary[numericSequence] = [];
+                    if (t9Dictionary[numericSequence].indexOf(word) === -1) {
+                        t9Dictionary[numericSequence].push(word);
+                    }
+                }
+            });
+            sortDictionaryByFrequency();
+        }
+
+        function sortDictionaryByFrequency() {
+            Object.keys(t9Dictionary).forEach(function(sequence) {
+                t9Dictionary[sequence].sort(function(a, b) {
+                    return (wordFrequencies[b] || 0) - (wordFrequencies[a] || 0);
+                });
+            });
+        }
+
+        function toggleMode() {
+            if (currentSequence.length > 0) { pressSpace(); }
+            singleDigitOverride = true;
+            modeLabel.textContent = 'Next: 123';
+            modeBtn.classList.add('active');
+            suggestionBar.textContent = 'Numeric injection armed for next press.';
+        }
 
         function pressNum(num) {
-            currentSequence += num;
-            currentMatchIndex = 0; // Reset match index to first option
+            if (singleDigitOverride) {
+                var trailingSpace = textHistory ? ' ' : '';
+                textHistory += trailingSpace + num;
+                singleDigitOverride = false;
+                modeLabel.textContent = 'Mode: T9';
+                modeBtn.classList.remove('active');
+            } else {
+                currentSequence += num;
+                currentMatchIndex = 0; 
+            }
             updateDisplay();
         }
 
         function cycleWords() {
             if (currentSequence.length === 0) return;
-            
-            const matches = t9Dictionary[currentSequence] || [];
+            var matches = t9Dictionary[currentSequence] || [];
             if (matches.length > 1) {
                 currentMatchIndex = (currentMatchIndex + 1) % matches.length;
                 updateDisplay();
             }
         }
 
+        function saveCustomWord() {
+            var promptText = 'Enter custom word matching the number sequence [' + currentSequence + ']:';
+            var word = prompt(promptText);
+            if (word) {
+                var cleanedWord = word.trim().toLowerCase();
+                if (cleanedWord.length !== currentSequence.length) {
+                    alert('Error: Word length must precisely match your phone keystroke count!');
+                    return;
+                }
+                wordFrequencies[cleanedWord] = 20000; 
+                compileT9Map([cleanedWord]);
+                updateDisplay();
+            }
+        }
+
         function pressSpace() {
-            // Commit the current active prediction to history
-            const matches = t9Dictionary[currentSequence] || [currentSequence];
-            const activeWord = matches[currentMatchIndex] || currentSequence;
+            var matches = t9Dictionary[currentSequence] || [];
+            var activeWord = matches[currentMatchIndex] || currentSequence;
             
-            textHistory += (textHistory ? " " : "") + activeWord;
-            currentSequence = "";
+            if (matches.length > 0 && matches[currentMatchIndex]) {
+                var selectedWord = matches[currentMatchIndex];
+                wordFrequencies[selectedWord] = (wordFrequencies[selectedWord] || 0) + 1500;
+                sortDictionaryByFrequency();
+            }
+
+            var trailingSpace = textHistory ? ' ' : '';
+            textHistory += trailingSpace + activeWord;
+            currentSequence = '';
             currentMatchIndex = 0;
             updateDisplay();
         }
 
         function backspace() {
             if (currentSequence.length > 0) {
-                // Remove last digit from active sequence
                 currentSequence = currentSequence.slice(0, -1);
                 currentMatchIndex = 0;
             } else if (textHistory.length > 0) {
-                // If no active sequence, delete from history string instead
-                const words = textHistory.split(" ");
-                words.pop();
-                textHistory = words.join(" ");
+                if (textHistory.substring(textHistory.length - 1) === ' ') {
+                    textHistory = textHistory.slice(0, -1);
+                } else {
+                    var words = textHistory.split(' ');
+                    words.pop();
+                    textHistory = words.join(' ');
+                }
             }
-            updateDisplay();
-        }
-
-        function clearAll() {
-            currentSequence = "";
-            textHistory = "";
-            currentMatchIndex = 0;
             updateDisplay();
         }
 
         function updateDisplay() {
-            // Find matched words or fallback to displaying raw numbers
-            const matches = t9Dictionary[currentSequence] || [];
-            const activeWord = matches[currentMatchIndex] || currentSequence;
-
-            // Combine previous text with what is currently being typed
-            const fullOutput = textHistory + (textHistory && activeWord ? " " : "") + activeWord;
+            var matches = t9Dictionary[currentSequence] || [];
+            var activeWord = matches[currentMatchIndex] || currentSequence;
+            var trailingSpace = (textHistory && activeWord) ? ' ' : '';
+            var fullOutput = textHistory + trailingSpace + activeWord;
+            
             textOutput.value = fullOutput;
 
-            // Update the retro status/suggestion layout bar
+            utilityBtn.className = 'next-btn';
+            utilityBtn.setAttribute('onclick', 'cycleWords()');
+            utilityLabel.textContent = 'Next Match';
+
             if (currentSequence.length > 0) {
                 if (matches.length > 0) {
-                    suggestionBar.textContent = `Match (${currentMatchIndex + 1}/${matches.length}): ${matches.join(', ')}`;
+                    var displayMatches = matches.slice(0, 4).join(', ');
+                    suggestionBar.textContent = '(' + (currentMatchIndex + 1) + '/' + matches.length + ') Matches: ' + displayMatches;
                 } else {
-                    suggestionBar.textContent = "No matches (Raw Code)";
+                    suggestionBar.textContent = 'Unknown Sequence!';
+                    utilityBtn.className = 'save-btn';
+                    utilityBtn.setAttribute('onclick', 'saveCustomWord()');
+                    utilityLabel.textContent = 'Save Word';
                 }
             } else {
-                suggestionBar.textContent = "Word: ";
+                if (!singleDigitOverride) suggestionBar.textContent = 'T9 Core Online.';
             }
-            
-            // Auto-scroll layout screen text down
             textOutput.scrollTop = textOutput.scrollHeight;
         }
-    </script>
 
+        loadRemoteDictionary();
+    </script>
 </body>
 </html>
