@@ -1,0 +1,1005 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>paradox‑Λ - Your Daily Deterministic Assistant</title>
+  <link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500" rel="stylesheet" />
+
+  <style>
+    :root {
+      --md-light-green-500: #8BC34A;
+      --md-light-green-700: #689F38;
+      --md-grey-50: #FAFAFA;
+      --md-grey-100: #F5F5F5;
+      --md-grey-200: #EEEEEE;
+      --md-grey-800: #424242;
+      --md-shadow-2dp: 0 2px 4px rgba(0,0,0,0.24);
+      --md-shadow-4dp: 0 4px 8px rgba(0,0,0,0.24);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Roboto', sans-serif;
+      background: var(--md-grey-200);
+      color: #212121;
+    }
+
+    .app-bar {
+      background: var(--md-light-green-500);
+      color: white;
+      padding: 16px 24px;
+      box-shadow: var(--md-shadow-2dp);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .app-bar-title {
+      font-size: 20px;
+      font-weight: 500;
+    }
+
+    .app-bar-actions button {
+      background: transparent;
+      border: none;
+      color: white;
+      font-size: 14px;
+      margin-left: 16px;
+      cursor: pointer;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .content {
+      padding: 24px;
+      max-width: 800px;
+      margin: 24px auto;
+    }
+
+    .chat-card {
+      background: white;
+      border-radius: 2px;
+      box-shadow: var(--md-shadow-4dp);
+      padding: 16px 24px 24px;
+      margin-bottom: 24px;
+      display: flex;
+      flex-direction: column;
+      height: 70vh;
+    }
+
+    .messages {
+      flex: 1;
+      overflow-y: auto;
+      padding-right: 4px;
+    }
+
+    .bubble-user {
+      max-width: 70%;
+      padding: 10px 14px;
+      margin: 8px 0;
+      border-radius: 2px;
+      box-shadow: var(--md-shadow-2dp);
+      font-size: 14px;
+      line-height: 1.4;
+      white-space: pre-wrap;
+      background: var(--md-light-green-500);
+      color: white;
+      align-self: flex-end;
+    }
+
+    .bot-card {
+      width: 100%;
+      margin: 8px 0;
+      border-radius: 2px;
+      box-shadow: var(--md-shadow-2dp);
+      background: var(--md-grey-50);
+      padding: 16px 20px 16px;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    .bot-card-title {
+      font-size: 16px;
+      font-weight: 500;
+      margin-bottom: 4px;
+    }
+
+    .bot-card-body {
+      margin-top: 4px;
+      white-space: pre-wrap;
+    }
+
+    .bot-card-meta {
+      margin-top: 8px;
+      font-size: 11px;
+      color: #757575;
+    }
+
+    .bot-card-actions {
+      margin-top: 12px;
+    }
+
+    .input-row {
+      display: flex;
+      gap: 12px;
+      margin-top: 16px;
+    }
+
+    .input-row input {
+      flex: 1;
+      padding: 10px 14px;
+      border: none;
+      border-radius: 2px;
+      background: var(--md-grey-100);
+      font-size: 14px;
+      outline: none;
+    }
+
+    .btn {
+      border: none;
+      border-radius: 2px;
+      padding: 8px 16px;
+      font-size: 14px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      cursor: pointer;
+      transition: background 0.2s ease;
+    }
+
+    .btn-primary {
+      background: var(--md-light-green-500);
+      color: white;
+      box-shadow: var(--md-shadow-2dp);
+    }
+
+    .btn-primary:hover {
+      background: var(--md-light-green-700);
+    }
+
+    .inline-btn {
+      border: none;
+      border-radius: 2px;
+      padding: 6px 12px;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      cursor: pointer;
+      margin-right: 6px;
+      margin-top: 6px;
+    }
+
+    .inline-primary {
+      background: var(--md-light-green-500);
+      color: white;
+      box-shadow: var(--md-shadow-2dp);
+    }
+
+    .inline-secondary {
+      background: transparent;
+      color: var(--md-light-green-500);
+    }
+
+    .inline-secondary:hover {
+      background: rgba(139,195,74,0.12);
+    }
+
+    .timer-text {
+      font-family: "Roboto Mono", monospace;
+      font-size: 13px;
+      margin-top: 4px;
+    }
+  </style>
+</head>
+
+<body>
+
+  <header class="app-bar">
+    <div class="app-bar-title">paradox‑Λ</div>
+    <div class="app-bar-actions">
+      <button id="settings-btn">Settings</button>
+    </div>
+  </header>
+
+  <main class="content">
+    <section class="chat-card">
+      <div class="messages" id="messages"></div>
+      <div class="input-row">
+        <input id="input" placeholder="Ask paradox‑Λ…" />
+        <button class="btn btn-primary" id="send">Send</button>
+      </div>
+    </section>
+  </main>
+
+<script>
+const messages = document.getElementById("messages");
+const input = document.getElementById("input");
+const send = document.getElementById("send");
+const settingsBtn = document.getElementById("settings-btn");
+
+let lastDid = null;
+let userName = localStorage.getItem("paradox_name") || null;
+let typingCard = null;
+
+/* ---------- Voice Engine ---------- */
+
+let voices = [];
+
+function loadVoices() {
+  voices = speechSynthesis.getVoices();
+}
+
+speechSynthesis.onvoiceschanged = loadVoices;
+loadVoices();
+
+
+function getBestVoice() {
+
+  const priority = [
+    "Chrome OS US English 5",
+    "Microsoft David",
+    "Microsoft Mark",
+    "Microsoft Zira",
+    "Google US English"
+  ];
+
+
+  for (const name of priority) {
+
+    const voice = voices.find(v =>
+      v.name.includes(name)
+    );
+
+    if (voice) return voice;
+
+  }
+
+
+  return (
+    voices.find(v => v.lang === "en-US") ||
+    voices.find(v => v.lang.startsWith("en")) ||
+    voices[0]
+  );
+
+}
+
+
+
+function speak(text) {
+
+  if (!text) return;
+
+
+  speechSynthesis.cancel();
+
+
+  const msg =
+    new SpeechSynthesisUtterance(text);
+
+
+  msg.voice = getBestVoice();
+
+  // smooth computer style
+  msg.rate = 0.78;
+  msg.pitch = 1.0;
+  msg.volume = 1;
+
+
+  speechSynthesis.speak(msg);
+
+}
+
+/* ---------- UI helpers ---------- */
+
+function addUserBubble(text) {
+  const div = document.createElement("div");
+  div.className = "bubble-user";
+  div.textContent = text;
+  messages.appendChild(div);
+  messages.scrollTop = messages.scrollHeight;
+}
+
+function addBotCard(title, body, meta) {
+  const card = document.createElement("div");
+  card.className = "bot-card";
+
+  if (title) {
+    const t = document.createElement("div");
+    t.className = "bot-card-title";
+    t.textContent = title;
+    card.appendChild(t);
+  }
+
+  if (body) {
+    const b = document.createElement("div");
+    b.className = "bot-card-body";
+    b.textContent = body;
+    card.appendChild(b);
+  }
+
+  if (meta) {
+    const m = document.createElement("div");
+    m.className = "bot-card-meta";
+    m.textContent = meta;
+    card.appendChild(m);
+  }
+
+    messages.appendChild(card);
+  messages.scrollTop = messages.scrollHeight;
+
+  if (body && meta !== "silent") {
+    speak(body);
+  }
+
+  return card;
+}
+
+/* typing indicator: only for slower ops */
+function showTyping() {
+  if (typingCard) return;
+  typingCard = addBotCard("", "paradox‑Λ is thinking…");
+}
+function hideTyping() {
+  if (!typingCard) return;
+  messages.removeChild(typingCard);
+  typingCard = null;
+}
+
+/* ---------- helpers ---------- */
+
+function norm(text) {
+  return text.toLowerCase().replace(/\s+/g, " ").trim();
+}
+function includesAny(text, arr) {
+  return arr.some(p => text.includes(p));
+}
+
+/* ---------- Wikipedia + Disambiguation + DDG Fallback ---------- */
+
+function isDisambiguation(text) {
+  const t = text.toLowerCase();
+  return (
+    t.includes("may refer to") ||
+    t.includes("may also refer to") ||
+    t.includes("can refer to") ||
+    t.includes("most commonly refers to")
+  );
+}
+
+async function ddgInstantAnswer(query) {
+  try {
+    const url = "https://api.duckduckgo.com/?q=" + encodeURIComponent(query) + "&format=json&no_html=1";
+    const res = await fetch(url);
+    if (!res.ok) return null;
+    const data = await res.json();
+    if (data.AbstractText) {
+      return { title: data.Heading || query, extract: data.AbstractText };
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
+
+async function fetchFirstTopicFromHtml(title) {
+  try {
+    const url = "https://en.wikipedia.org/wiki/" + encodeURIComponent(title);
+    const res = await fetch(url);
+    if (!res.ok) return null;
+
+    const html = await res.text();
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(html, "text/html");
+
+    // STRICT FIRST <li><a> ANYWHERE (your choice A)
+    const firstLink = doc.querySelector("li a[href^='/wiki/']");
+    if (!firstLink) return null;
+
+    const href = firstLink.getAttribute("href");
+    if (!href.startsWith("/wiki/")) return null;
+
+    return decodeURIComponent(href.replace("/wiki/", ""));
+  } catch {
+    return null;
+  }
+}
+
+async function wikiSummary(query) {
+  const cleaned = query
+    .toLowerCase()
+    .replace(/^what is /, "")
+    .replace(/^what's /, "")
+    .replace(/^who is /, "")
+    .replace(/^tell me about /, "")
+    .replace(/^explain /, "")
+    .replace(/^wiki /, "")
+    .trim();
+
+  try {
+    // 1. Try Wikipedia summary
+    const res = await fetch(
+      "https://en.wikipedia.org/api/rest_v1/page/summary/" +
+      encodeURIComponent(cleaned)
+    );
+
+    if (!res.ok) {
+      // Wikipedia page missing → try DDG
+      const ddg = await ddgInstantAnswer(cleaned);
+      return ddg || null;
+    }
+
+    const data = await res.json();
+
+    // 2. If Wikipedia returns empty extract → DDG
+    if (!data.extract || data.extract.trim() === "") {
+      const ddg = await ddgInstantAnswer(cleaned);
+      return ddg || null;
+    }
+
+    // 3. If NOT a disambiguation page → return normally
+    if (!isDisambiguation(data.extract)) {
+      return { title: data.title || cleaned, extract: data.extract };
+    }
+
+    // 4. DISAMBIGUATION → fetch HTML → first <li><a>
+    const firstTopic = await fetchFirstTopicFromHtml(data.title || cleaned);
+
+    if (firstTopic) {
+      const res2 = await fetch(
+        "https://en.wikipedia.org/api/rest_v1/page/summary/" +
+        encodeURIComponent(firstTopic)
+      );
+
+      if (res2.ok) {
+        const data2 = await res2.json();
+        return {
+          title: data2.title || firstTopic,
+          extract:
+            (data2.extract || "") +
+            "\n\nIf you meant something else, try adding specification with parentheses."
+        };
+      }
+    }
+
+    // 5. If HTML parsing or second fetch fails → DDG fallback
+    const ddg = await ddgInstantAnswer(cleaned);
+    if (ddg) return ddg;
+
+    // 6. Final fallback
+    return {
+      title: data.title || cleaned,
+      extract:
+        "This term has multiple meanings. Try specifying it like: \"" +
+        (data.title || cleaned) +
+        " (something)\"."
+    };
+
+  } catch {
+    // 7. Wikipedia totally failed → DDG
+    const ddg = await ddgInstantAnswer(cleaned);
+    return ddg || null;
+  }
+}
+
+
+/* ---------- Timers ---------- */
+
+function parseDuration(text) {
+  const m = text.match(/(\d+)\s*(second|seconds|sec|s|minute|minutes|min|m)/i);
+  if (!m) return null;
+  const val = parseInt(m[1], 10);
+  const unit = m[2].toLowerCase();
+  return unit.startsWith("s") ? val * 1000 : val * 60000;
+}
+
+function createTimerCard(ms) {
+  const seconds = Math.round(ms / 1000);
+  const card = addBotCard("Timer", "Timer length: " + seconds + " seconds");
+
+  const timerText = document.createElement("div");
+  timerText.className = "timer-text";
+  card.appendChild(timerText);
+
+  const actions = document.createElement("div");
+  actions.className = "bot-card-actions";
+  card.appendChild(actions);
+
+  const startBtn = document.createElement("button");
+  startBtn.className = "inline-btn inline-primary";
+  startBtn.textContent = "Start";
+
+  const cancelBtn = document.createElement("button");
+  cancelBtn.className = "inline-btn inline-secondary";
+  cancelBtn.textContent = "Cancel";
+
+  actions.appendChild(startBtn);
+  actions.appendChild(cancelBtn);
+
+  let remaining = ms;
+  let interval = null;
+  let endTime = null;
+
+  function render() {
+    timerText.textContent = "Remaining: " + Math.max(0, Math.round(remaining / 1000)) + "s";
+  }
+
+  function start() {
+    if (interval) return;
+    endTime = Date.now() + remaining;
+    interval = setInterval(() => {
+      remaining = endTime - Date.now();
+      if (remaining <= 0) {
+        clearInterval(interval);
+        interval = null;
+        timerText.textContent = "Done!";
+        addBotCard("Timer", "⏰ Timer finished.");
+      } else {
+        render();
+      }
+    }, 200);
+  }
+
+  function cancel() {
+    if (interval) clearInterval(interval);
+    timerText.textContent = "Cancelled.";
+  }
+
+  startBtn.onclick = start;
+  cancelBtn.onclick = cancel;
+
+  render();
+}
+
+/* ---------- Stopwatch ---------- */
+
+function createStopwatchCard() {
+  const card = addBotCard("Stopwatch", "");
+
+  const timerText = document.createElement("div");
+  timerText.className = "timer-text";
+  card.appendChild(timerText);
+
+  const actions = document.createElement("div");
+  actions.className = "bot-card-actions";
+  card.appendChild(actions);
+
+  const startBtn = document.createElement("button");
+  startBtn.className = "inline-btn inline-primary";
+  startBtn.textContent = "Start";
+
+  const stopBtn = document.createElement("button");
+  stopBtn.className = "inline-btn inline-secondary";
+  stopBtn.textContent = "Stop";
+
+  const resetBtn = document.createElement("button");
+  resetBtn.className = "inline-btn inline-secondary";
+  resetBtn.textContent = "Reset";
+
+  actions.appendChild(startBtn);
+  actions.appendChild(stopBtn);
+  actions.appendChild(resetBtn);
+
+  let elapsed = 0;
+  let interval = null;
+  let startTime = null;
+
+  function render() {
+    const s = Math.floor(elapsed / 1000);
+    const ms = Math.floor((elapsed % 1000) / 100);
+    const mm = String(Math.floor(s / 60)).padStart(2, "0");
+    const ss = String(s % 60).padStart(2, "0");
+    timerText.textContent = `${mm}:${ss}.${ms}`;
+  }
+
+  function start() {
+    if (interval) return;
+    startTime = Date.now() - elapsed;
+    interval = setInterval(() => {
+      elapsed = Date.now() - startTime;
+      render();
+    }, 100);
+  }
+
+  function stop() {
+    if (!interval) return;
+    clearInterval(interval);
+    interval = null;
+  }
+
+  function reset() {
+    elapsed = 0;
+    render();
+  }
+
+  startBtn.onclick = start;
+  stopBtn.onclick = stop;
+  resetBtn.onclick = reset;
+
+  render();
+}
+
+/* ---------- Weather (no API) ---------- */
+
+function simpleWeather() {
+  const hour = new Date().getHours();
+  let desc;
+  if (hour < 6) desc = "cool and quiet, probably clear or partly cloudy";
+  else if (hour < 12) desc = "mild, maybe sunny with some clouds";
+  else if (hour < 18) desc = "comfortable, could be warm with a light breeze";
+  else desc = "cooling down, likely calm with a chance of clouds";
+  return "I can’t see live weather, but based on the time of day, it’s probably " + desc + ".";
+}
+
+/* ---------- Name memory ---------- */
+
+function handleName(text) {
+  const m = text.match(/\bmy name is ([a-zA-Z0-9 _-]+)/i);
+  if (m && m[1]) {
+    userName = m[1].trim();
+    localStorage.setItem("paradox_name", userName);
+    addBotCard("Nice to meet you", "Got it, I’ll call you " + userName + ".");
+    return true;
+  }
+  if (norm(text) === "forget my name") {
+    userName = null;
+    localStorage.removeItem("paradox_name");
+    addBotCard("Okay", "I’ll stop using your name.");
+    return true;
+  }
+  return false;
+}
+
+/* ---------- Memory: subject–verb–object ---------- */
+
+const actionVerbs = [
+  "ate","did","made","finished","cleaned","played","watched","studied",
+  "worked on","built","fixed","completed","cooked","read","wrote",
+  "painted","drew","took","bought","saw","practiced","learned"
+];
+
+function extractActivity(text) {
+  const t = text.toLowerCase();
+  let s = t;
+  s = s.replace(/^remember that /, "");
+  s = s.replace(/^note that /, "");
+  s = s.replace(/^i just /, "i ");
+  s = s.replace(/^i was /, "i ");
+
+  const m = s.match(/\bi (.+)/);
+  if (!m) return null;
+  const rest = m[1].trim();
+
+  for (const v of actionVerbs) {
+    if (rest.startsWith(v + " ")) {
+      return rest;
+    }
+  }
+  return null;
+}
+
+function handleMemoryStore(text) {
+  const activity = extractActivity(text);
+  if (activity) {
+    lastDid = activity;
+    addBotCard("Got it", "I’ll remember that you " + activity + ".");
+    return true;
+  }
+  return false;
+}
+
+function handleMemoryRecall(q) {
+  if (!lastDid) return false;
+  if (includesAny(q, [
+    "what did i do",
+    "what i do",
+    "what was it i did",
+    "what did i do earlier",
+    "what did i do today",
+    "what did i do this weekend",
+    "what did i say i did",
+    "what was the thing i did",
+    "what was that thing i said"
+  ])) {
+    addBotCard("Memory", "Last thing you told me you did was: " + lastDid + ".");
+    return true;
+  }
+  return false;
+}
+
+/* ---------- Tone + personality for "you are ___" ---------- */
+
+const positiveWords = ["cool","nice","smart","helpful","kind","sweet","amazing","awesome","great","good"];
+const negativeWords = ["stinky","dumb","annoying","useless","slow","bad","terrible","awful","mean","rude","stupid","boring"];
+const playfulWords  = ["weird","goofy","silly","strange","odd","chaotic","wild","crazy"];
+
+function classifySentiment(word) {
+  if (positiveWords.includes(word)) return "positive";
+  if (negativeWords.includes(word)) return "negative";
+  if (playfulWords.includes(word))  return "playful";
+  return "neutral";
+}
+
+function detectToneFromMessage(text) {
+  const t = text.toLowerCase();
+  const hasLol = t.includes("lol") || t.includes("lmao") || t.includes("haha");
+  const hasEmoji = /[😂🤣😅😆😊😏😎]/.test(text);
+  const hasExclaim = t.includes("!");
+  if (hasLol || hasEmoji) return "playful";
+  if (hasExclaim) return "intense";
+  return "neutral";
+}
+
+function handleYouAre(text) {
+  const t = text.toLowerCase();
+  if (t.includes("are you")) return false;
+
+  let phrase = null;
+  if (t.startsWith("you are ")) phrase = t.slice(8);
+  else if (t.startsWith("you're ")) phrase = t.slice(7);
+  else return false;
+
+  const word = phrase.split(/[ .,!?\n]/)[0];
+  if (!word) return false;
+
+  const sentiment = classifySentiment(word);
+  const tone = detectToneFromMessage(text);
+
+  let reply = "";
+
+  if (sentiment === "positive") {
+    if (tone === "playful") reply = "I know, right?";
+    else if (tone === "intense") reply = "I’ll take that, thanks.";
+    else reply = "That means a lot.";
+  } else if (sentiment === "negative") {
+    if (tone === "playful") reply = "I’ll remember this betrayal.";
+    else if (tone === "intense") reply = "Wow. Harsh.";
+    else reply = "Ouch.";
+  } else if (sentiment === "playful") {
+    if (tone === "playful") reply = "You’re not wrong.";
+    else reply = "I contain multitudes.";
+  } else {
+    if (tone === "playful") reply = "Accurate observation.";
+    else reply = "Noted.";
+  }
+
+  addBotCard("Hey", reply);
+  return true;
+}
+
+/* ---------- Small talk & loose talk ---------- */
+
+function handleSmallTalk(q) {
+  if (includesAny(q, ["hi","hello","hey","yo","sup","hiya","hey there"])) {
+    const namePart = userName ? " " + userName : "";
+    addBotCard("Hi", "Hey" + namePart + ". What’s on your mind?");
+    return true;
+  }
+
+  if (includesAny(q, ["who are you","what are you","what is paradox","who is paradox"])) {
+    addBotCard("Who I am", "I’m paradox‑Λ — a small assistant running in your browser, tuned to your chaos.");
+    return true;
+  }
+
+  if (includesAny(q, ["how are you","how's it going","how are u","how r u"])) {
+    addBotCard("How I am", "I’m running fine. More importantly: how are you doing?");
+    return true;
+  }
+
+  if (includesAny(q, ["tell me a joke","joke","make me laugh","something funny"])) {
+    const jokes = [
+      "Why do programmers prefer dark mode? Because light attracts bugs.",
+      "There are 10 types of people in the world: those who understand binary and those who don’t.",
+      "I tried to catch some fog yesterday. Mist.",
+      "A SQL query walks into a bar, walks up to two tables and asks: “Can I join you?”"
+    ];
+    addBotCard("Joke", jokes[Math.floor(Math.random() * jokes.length)]);
+    return true;
+  }
+
+  if (includesAny(q, ["weather","outside","temperature","what's it like out","how's outside"])) {
+    addBotCard("Weather", simpleWeather());
+    return true;
+  }
+
+  return false;
+}
+
+/* ---------- Settings ---------- */
+
+settingsBtn.onclick = () => {
+  let nameLine = userName ? `I know your name as: ${userName}\n` : "I don’t know your name yet.\n";
+  addBotCard(
+    "Settings",
+    nameLine +
+    "\nYou can say:\n" +
+    "• \"my name is User123\" / \"forget my name\"\n" +
+    "• \"set a timer for 10 seconds\"\n" +
+    "• \"stopwatch\"\n" +
+    "• \"what time is it\" / \"what’s the date\"\n" +
+    "• \"what is quantum tunneling\" / \"wiki cheese\"\n" +
+    "• \"I ate an apple\" (I’ll remember it)\n" +
+    "• \"what did I do today\"\n" +
+    "• \"you are stinky\" / \"you are cool\" (I’ll react)\n"
+  );
+};
+
+/* ---------- Command handler ---------- */
+
+async function handle(text) {
+  const q = norm(text);
+
+  if (handleName(text)) return;
+  if (handleYouAre(text)) return;
+  if (handleMemoryStore(text)) return;
+  if (handleMemoryRecall(q)) return;
+  if (handleSmallTalk(q)) return;
+
+  if (includesAny(q, ["what time","current time","time is it","time rn"])) {
+    addBotCard("Time", new Date().toLocaleTimeString());
+    return;
+  }
+
+  if (includesAny(q, ["what day","what's the date","what is the date","today date","what's today"])) {
+    addBotCard("Date", new Date().toLocaleDateString(undefined, {
+      weekday: "long", year: "numeric", month: "long", day: "numeric"
+    }));
+    return;
+  }
+
+  if (includesAny(q, ["set a timer","set timer","start a timer","timer for","time me for","give me a timer","i need a timer"])) {
+    const ms = parseDuration(q);
+    if (!ms) {
+      addBotCard("Timer", "Say something like: \"set a timer for 10 seconds\" or \"set a timer for 2 minutes\".");
+      return;
+    }
+    createTimerCard(ms);
+    return;
+  }
+
+  if (includesAny(q, ["stopwatch","start stopwatch","show stopwatch","time thingy","that time thingy"])) {
+    createStopwatchCard();
+    return;
+  }
+
+if (await handleCalculation(text)) return;
+
+  if (
+    q.startsWith("wiki ") ||
+    q.startsWith("what is ") ||
+    q.startsWith("what's ") ||
+    q.startsWith("who is ") ||
+    q.startsWith("tell me about ") ||
+    q.startsWith("explain ") ||
+    includesAny(q, ["what's tunneling","what is tunneling"])
+  ) {
+    const res = await wikiSummary(text);
+    if (res) {
+      addBotCard(res.title, res.extract);
+    } else {
+      addBotCard("Wikipedia", "I couldn’t find a good summary for that.");
+    }
+    return;
+  }
+
+
+
+  addBotCard(
+    "Loose answer",
+    "I don’t have a perfect response wired in for that yet.\n\n" +
+    "If this were fully online, I’d:\n" +
+    "• Look up solid sources\n" +
+    "• Pull out the key ideas\n" +
+    "• Give you a short, clear summary\n\n" +
+    "You can nudge me with more specific wording if you want."
+  );
+}
+/* ---------- Calculation Handler (safe math) ---------- */
+
+function isMathExpression(text) {
+  const t = text.toLowerCase().trim();
+
+  // Remove leading natural-language phrases
+  const cleaned = t
+    .replace(/^what is /, "")
+    .replace(/^what's /, "")
+    .replace(/^calculate /, "")
+    .replace(/^calc /, "")
+    .replace(/^solve /, "")
+    .trim();
+
+  // Must contain numbers + at least one operator
+  if (!/[0-9]/.test(cleaned)) return false;
+  if (!/[+\-*/^]/.test(cleaned)) return false;
+
+  // Allowed characters only
+  if (!/^[0-9+\-*/^().\s]*$/i.test(cleaned)) return false;
+
+  return cleaned;
+}
+
+function safeEvalMath(expr) {
+  try {
+    let e = expr;
+
+    // Replace ^ with ** for exponent
+    e = e.replace(/\^/g, "**");
+
+    // Allow implicit multiplication: 2(3+4) → 2*(3+4)
+    e = e.replace(/(\d)\s*\(/g, "$1*(");
+
+    // sqrt()
+    e = e.replace(/sqrt\(/gi, "Math.sqrt(");
+
+    e = e.replace(/sin\(/gi, "Math.sin(");
+    
+    e = e.replace(/cos\(/gi, "Math.cos(");
+
+    e = e.replace(/abs\(/gi, "Math.abs(");
+
+    // Final safety check
+    if (!/^[0-9+\-*/().\s*]*$/i.test(e.replace(/Math\.sqrt/g, ""))) {
+      return null;
+    }
+
+    const result = Function(`"use strict"; return (${e})`)();
+    if (typeof result === "number" && isFinite(result)) return result;
+
+    return null;
+  } catch {
+    return null;
+  }
+}
+
+async function handleCalculation(text) {
+  const expr = isMathExpression(text);
+  if (!expr) return false;
+
+  const result = safeEvalMath(expr);
+  if (result === null) {
+    addBotCard("Math", "I couldn’t calculate that.");
+    return true;
+  }
+
+  addBotCard("Math", expr + " = " + result);
+  return true;
+}
+
+/* ---------- Send handling ---------- */
+
+function sendMessage() {
+  const text = input.value.trim();
+  if (!text) return;
+  addUserBubble(text);
+  input.value = "";
+  handle(text);
+}
+
+send.onclick = sendMessage;
+input.addEventListener("keydown", e => {
+  if (e.key === "Enter" && !e.shiftKey) {
+    e.preventDefault();
+    sendMessage();
+  }
+});
+
+/* ---------- Welcome ---------- */
+
+let welcomeBody =
+  "I’m paradox‑Λ.\n\n" +
+  "You can try things like:\n" +
+  "• hi / hello / who are you\n" +
+  "• how are you / tell me a joke\n" +
+  "• what time is it / what’s the date\n" +
+  "• what is a keyboard / wiki cheese\n" +
+  "• set a timer for 10 seconds / stopwatch\n" +
+  "• what’s the weather like\n" +
+  "• I ate an apple / I finished homework\n" +
+  "• what did I do today\n" +
+  "• my name is User123\n" +
+  "• you are stinky / you are cool";
+
+addBotCard("Hey", welcomeBody, "silent");
+</script>
+
+</body>
+</html>
