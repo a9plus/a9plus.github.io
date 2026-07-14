@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>FakeAds</title>
+
+<style>
+*{box-sizing:border-box}
+
+html,body{
+    margin:0;
+    width:300px;
+    height:250px;
+    overflow:hidden;
+    font-family:Arial,Helvetica,sans-serif;
+}
+
+#ad{
+    width:300px;
+    height:250px;
+    overflow:hidden;
+}
+
+
+/* PREMIUM */
+
+.premium{
+    background:white;
+}
+
+.premium img{
+    width:300px;
+    height:125px;
+    object-fit:cover;
+}
+
+.premium .info{
+    padding:10px 14px;
+}
+
+.premium .company{
+    color:#777;
+    font-size:10px;
+    letter-spacing:2px;
+}
+
+.premium h1{
+    margin:5px 0;
+    font-size:20px;
+}
+
+.premium p{
+    margin:0;
+    color:#555;
+    font-size:12px;
+}
+
+.premium button{
+    position:absolute;
+    right:12px;
+    bottom:12px;
+}
+
+
+
+/* SCAM */
+
+.scam{
+    background:#ffdc00;
+    text-align:center;
+    padding:8px;
+}
+
+.scam .warning{
+    background:red;
+    color:white;
+    font-weight:bold;
+    padding:5px;
+}
+
+.scam h1{
+    font-size:26px;
+    line-height:.9;
+}
+
+.scam img{
+    width:100px;
+    height:65px;
+    object-fit:cover;
+}
+
+.scam .price{
+    font-size:22px;
+    font-weight:bold;
+}
+
+.scam button{
+    background:red;
+    color:white;
+}
+
+
+
+/* SHOP */
+
+.shop{
+    background:#f4f4f4;
+    padding:12px;
+}
+
+.shop img{
+    width:95px;
+    height:95px;
+    object-fit:cover;
+    float:left;
+    margin-right:10px;
+}
+
+.shop h1{
+    font-size:17px;
+}
+
+.rating{
+    color:#ff9900;
+}
+
+.shop .price{
+    font-size:21px;
+    font-weight:bold;
+}
+
+.shop button{
+    position:absolute;
+    bottom:12px;
+    left:12px;
+    right:12px;
+    background:#ff9900;
+}
+
+
+
+/* STARTUP */
+
+.startup{
+    background:#101010;
+    color:white;
+    text-align:center;
+    padding:18px;
+}
+
+.startup img{
+    width:75px;
+    height:75px;
+    border-radius:50%;
+    object-fit:cover;
+}
+
+.startup .company{
+    color:#aaa;
+    letter-spacing:4px;
+    font-size:11px;
+}
+
+.startup h1{
+    font-size:20px;
+}
+
+.startup p{
+    color:#bbb;
+}
+
+.startup button{
+    background:white;
+    color:black;
+}
+
+
+
+button{
+    border:0;
+    padding:8px 16px;
+    border-radius:20px;
+    font-weight:bold;
+}
+
+</style>
+</head>
+
+
+<body>
+
+<div id="ad"></div>
+
+
+<script>
+
+function pick(a){
+    return a[Math.floor(Math.random()*a.length)];
+}
+
+
+/* RANDOM COMPANY */
+
+const parts=[
+"vo","la","nu","ri","xa","zen",
+"tek","io","ly","vi","ka","sol",
+"ar","en","ti","um","ex","on",
+"mi","ro","za","fi"
+];
+
+
+function makeCompany(){
+
+let n=
+pick(parts)+
+pick(parts)+
+pick(parts);
+
+return n[0].toUpperCase()+n.slice(1);
+
+}
+
+
+
+/* RANDOM PRODUCT */
+
+
+const products=[
+"Smart Bottle",
+"Wireless Earbuds",
+"Desk Lamp",
+"Coffee Machine",
+"Mechanical Keyboard",
+"Travel Backpack",
+"Fitness Watch",
+"Air Purifier",
+"Mini Projector",
+"Gaming Mouse",
+"Office Chair",
+"Smart Camera",
+"Portable Speaker",
+"Robot Vacuum",
+"Sleep Mask"
+];
+
+
+const images=[
+"bottle",
+"headphones",
+"lamp",
+"coffee",
+"keyboard",
+"backpack",
+"watch",
+"speaker",
+"camera",
+"chair"
+];
+
+
+const normal=[
+"Built for everyday life.",
+"Designed with precision.",
+"Premium quality without compromise.",
+"Made to fit your routine.",
+"Simple. Powerful. Reliable.",
+"Created for modern living."
+];
+
+
+const startup=[
+"Reimagining the future.",
+"The next generation of technology.",
+"Where ideas become reality.",
+"Built for tomorrow.",
+"Innovation made simple."
+];
+
+
+const scam=[
+"People are going crazy for this!",
+"Almost sold out!",
+"Experts don't want you to know!",
+"Everyone is buying this!",
+"This changes everything!"
+];
+
+
+const shop=[
+"Best seller this month.",
+"★★★★★ Customer favorite.",
+"Thousands of happy buyers.",
+"Limited stock available."
+];
+
+
+const buttonText=[
+"Learn More",
+"Discover",
+"Shop Now",
+"Get Yours",
+"Claim Now"
+];
+
+
+
+let company=makeCompany();
+let product=pick(products);
+let image=
+"https://loremflickr.com/300/150/"
++pick(images)
++"?lock="
++Math.random()*999999;
+
+
+
+let style=pick([
+"premium",
+"scam",
+"shop",
+"startup"
+]);
+
+
+let ad=document.getElementById("ad");
+
+
+
+if(style==="premium"){
+
+ad.className="premium";
+
+ad.innerHTML=`
+
+<img src="${image}">
+
+<div class="info">
+
+<div class="company">
+${company}
+</div>
+
+<h1>${product}</h1>
+
+<p>${pick(normal)}</p>
+
+</div>
+
+<button>
+${pick(buttonText)}
+</button>
+
+`;
+
+}
+
+
+
+if(style==="scam"){
+
+ad.className="scam";
+
+ad.innerHTML=`
+
+<div class="warning">
+🔥 BREAKING OFFER
+</div>
+
+<h1>
+${pick(scam)}
+</h1>
+
+<img src="${image}">
+
+<div class="price">
+ONLY $${(Math.random()*20+1).toFixed(2)}
+</div>
+
+<button>
+CLAIM NOW
+</button>
+
+`;
+
+}
+
+
+
+if(style==="shop"){
+
+ad.className="shop";
+
+ad.innerHTML=`
+
+<img src="${image}">
+
+<h1>${product}</h1>
+
+<div class="rating">
+★★★★★
+</div>
+
+<p>
+${pick(shop)}
+</p>
+
+<div class="price">
+$${(Math.random()*100+5).toFixed(2)}
+</div>
+
+<button>
+ADD TO CART
+</button>
+
+`;
+
+}
+
+
+
+if(style==="startup"){
+
+ad.className="startup";
+
+ad.innerHTML=`
+
+<div class="company">
+${company.toUpperCase()}
+</div>
+
+<img src="${image}">
+
+<h1>
+${product}
+</h1>
+
+<p>
+${pick(startup)}
+</p>
+
+<button>
+Explore
+</button>
+
+`;
+
+}
+
+
+</script>
+
+</body>
+</html>
