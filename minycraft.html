@@ -34,21 +34,22 @@ display:flex;
 gap:5px;
 }
 
-.slot{
-width:45px;
-height:45px;
-background-size:cover;
-background-position:center;
-background-repeat:no-repeat;
-border:3px solid #777;
-color:white;
-font-family:monospace;
-font-weight:bold;
-display:flex;
-align-items:center;
-justify-content:center;
-box-shadow:inset 0 0 0 2px #111;
+.slot {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden; /* Keeps the block preview bounded */
 }
+
+.hotbar-icon {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  
+  /* CRITICAL: Keeps your noise textures crisp instead of blurry! */
+  image-rendering: pixelated; 
+}
+
 
 .active{
 border-color:white;
@@ -282,64 +283,41 @@ BLOCK.BRICK,
 BLOCK.WATER
 ];
 
-function updateHotbar(){
-
-hotbar.innerHTML="";
-
-for(let i=0;i<hotbarBlocks.length;i++){
-
-let slot=document.createElement("div");
-
-slot.className="slot";
-
-
-if(hotbarBlocks[i]==selectedBlock)
-slot.classList.add("active");
-
-
-
-let mat=materials[hotbarBlocks[i]];
-
-
-
-if(mat.map){
-
-slot.style.backgroundImage=
-`url(${mat.map.image.toDataURL()})`;
-
-}else{
-
-
-if(hotbarBlocks[i]==BLOCK.GLASS){
-
-slot.style.background="#99ddff";
-
-}
-
-
-if(hotbarBlocks[i]==BLOCK.GLOW){
-
-slot.style.background="#ffff55";
-
-}
-
-
-if(hotbarBlocks[i]==BLOCK.WATER){
-
-slot.style.background="#2060ff";
-
-}
-
-
-}
-
-
-
-hotbar.appendChild(slot);
-
-}
-
-}
+function updateHotbar(){ 
+  hotbar.innerHTML=""; 
+  
+  for(let i=0; i<hotbarBlocks.length; i++){ 
+    let slot=document.createElement("div"); 
+    slot.className="slot"; 
+    
+    if(hotbarBlocks[i]==selectedBlock) slot.classList.add("active"); 
+    
+    let img=document.createElement("canvas"); 
+    img.width=32; 
+    img.height=32; 
+    let ctx=img.getContext("2d"); 
+    
+    let tex=materials[hotbarBlocks[i]].map; 
+    
+    // Fallback lookups to ensure Three.js provides the raw image element
+    let actualImage = tex && (tex.image || (tex.source && tex.source.data) || tex.element);
+    
+    if(actualImage){ 
+      ctx.imageSmoothingEnabled=false; 
+      ctx.drawImage( actualImage, 0, 0, 32, 32 ); 
+    } 
+    
+    // Create the HTML img element instead of using slot.style.backgroundImage
+    let thumbnailImg = document.createElement("img");
+    thumbnailImg.src = img.toDataURL();
+    thumbnailImg.className = "hotbar-icon";
+    
+    // Append the image inside the slot
+    slot.appendChild(thumbnailImg);
+    
+    hotbar.appendChild(slot); 
+  } 
+} 
 updateHotbar();
 
 const CHUNK_SIZE=16;
