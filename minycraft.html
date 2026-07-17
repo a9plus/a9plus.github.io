@@ -183,6 +183,23 @@ modal.style.display="block";
 }
 
 }
+
+// This tracks the [x, y, z, x, y, z] numbers for each block type
+let blockArrays = {
+  grass: [],
+  dirt: [],
+  stone: [],
+  wood: [],
+  leaf: [],
+  sand: [],
+  glow: [],
+  brick: [],
+  water: [],
+  glass: []
+};
+
+
+
 const scene=new THREE.Scene();
 
 scene.background=new THREE.Color(0x87ceeb);
@@ -745,30 +762,27 @@ return x+","+y+","+z;
 
 
 
-function getChunk(cx,cz){
-
-let k=chunkKey(cx,cz);
-
-
-if(!chunks[k]){
-
-chunks[k]={
-
-blocks:{},
-
-mesh:null,
-
-cx:cx,
-
-cz:cz
-
-};
-
-}
-
-
-return chunks[k];
-
+function getChunk(cx,cz){ 
+  let k=chunkKey(cx,cz); 
+  
+  if(!chunks[k]){ 
+    chunks[k]={ 
+      blocks:{}, 
+      mesh:null, 
+      cx:cx, 
+      cz:cz 
+    }; 
+    
+    // Check if the browser remembers this specific chunk key
+    let savedData = localStorage.getItem(`chunk_${k}`);
+    
+    if (savedData) {
+      // If it exists, unpack user's saved block layout directly into the chunk!
+      chunks[k].blocks = JSON.parse(savedData);
+    }
+  } 
+  
+  return chunks[k]; 
 }
 
 
@@ -1181,6 +1195,40 @@ c.mesh=group;
 
 
 
+let autosaveTimeout;
+
+function triggerAutosave() {
+  // 1. If you are clicking fast to break/place multiple blocks, 
+  // clear the old timer so the game doesn't stutter or freeze.
+  clearTimeout(autosaveTimeout);
+
+  // 2. Wait 500 milliseconds (half a second) of quiet time before saving.
+  autosaveTimeout = setTimeout(() => {
+    
+    // 3. Loop through every single active chunk in your game engine memory
+    for (let key in chunks) {
+      let c = chunks[key];
+      
+      // Check if the chunk exists and has blocks placed inside it
+      if (c && c.blocks && Object.keys(c.blocks).length > 0) {
+        
+        // 4. Pack the entire chunk's block object into a tiny JSON string 
+        // Example structure saved: {"0,5,0": 1, "0,4,0": 3}
+        let packedChunkData = JSON.stringify(c.blocks);
+        
+        // 5. Store it directly in LocalStorage labeled by its unique chunk key (like "chunk_0,0")
+        localStorage.setItem(`chunk_${key}`, packedChunkData);
+        
+      } else {
+        // If a chunk becomes completely empty (you broke all the custom blocks), 
+        // remove its save file so it doesn't take up empty storage space.
+        localStorage.removeItem(`chunk_${key}`);
+      }
+    }
+    
+    console.log("Minycraft Chunk-Autosave completed in background!");
+  }, 500); // 500ms delay
+}
 
 
 
@@ -1264,7 +1312,8 @@ if(c.mesh)
 
 scene.remove(c.mesh);
 
-
+triggerAutosave();
+  
 delete chunks[k];
 
 
@@ -1774,120 +1823,31 @@ hit.object.userData.pos;
 
 
 
-if(e.button==0){
+  if(e.button==0){ 
+    let cx = Math.floor( p[0]/CHUNK_SIZE ); 
+    let cz = Math.floor( p[2]/CHUNK_SIZE ); 
 
+    setBlock( cx, cz, p[0]-cx*CHUNK_SIZE, p[1], p[2]-cz*CHUNK_SIZE, 0 ); 
+    rebuildChunk( cx, cz ); 
 
+    triggerAutosave(); 
+  } 
+  
+  if(e.button==2){ 
+    let n = hit.face.normal; 
+    let x = p[0]+n.x; 
+    let y = p[1]+n.y; 
+    let z = p[2]+n.z; 
+    let cx = Math.floor( x/CHUNK_SIZE ); 
+    let cz = Math.floor( z/CHUNK_SIZE ); 
 
-let cx=
-Math.floor(
-p[0]/CHUNK_SIZE
-);
+    setBlock( cx, cz, x-cx*CHUNK_SIZE, y, z-cz*CHUNK_SIZE, selectedBlock ); 
+    rebuildChunk( cx, cz ); 
 
-
-let cz=
-Math.floor(
-p[2]/CHUNK_SIZE
-);
-
-
-
-setBlock(
-
-cx,
-
-cz,
-
-p[0]-cx*CHUNK_SIZE,
-
-p[1],
-
-p[2]-cz*CHUNK_SIZE,
-
-0
-
-);
-
-
-
-rebuildChunk(
-cx,
-cz
-);
-
-
-}
-
-
-
-
-
-
-
-if(e.button==2){
-
-
-let n=
-hit.face.normal;
-
-
-
-let x=
-p[0]+n.x;
-
-
-let y=
-p[1]+n.y;
-
-
-let z=
-p[2]+n.z;
-
-
-
-
-let cx=
-Math.floor(
-x/CHUNK_SIZE
-);
-
-
-let cz=
-Math.floor(
-z/CHUNK_SIZE
-);
-
-
-
-
-setBlock(
-
-cx,
-
-cz,
-
-x-cx*CHUNK_SIZE,
-
-y,
-
-z-cz*CHUNK_SIZE,
-
-selectedBlock
-
-);
-
-
-
-rebuildChunk(
-cx,
-cz
-);
-
-
-
-}
-
-
+    triggerAutosave(); 
+  } 
 });
+
 
 
 
