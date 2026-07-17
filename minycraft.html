@@ -265,7 +265,46 @@ WATER:10
 };
 
 
+let selectedBlock=BLOCK.GRASS;
 
+const hotbarBlocks=[
+BLOCK.GRASS,
+BLOCK.DIRT,
+BLOCK.STONE,
+BLOCK.SAND,
+BLOCK.WOOD,
+BLOCK.LEAF,
+BLOCK.GLASS,
+BLOCK.GLOW,
+BLOCK.BRICK,
+BLOCK.WATER
+];
+
+function updateHotbar(){
+
+hotbar.innerHTML="";
+
+for(let i=0;i<hotbarBlocks.length;i++){
+
+let slot=document.createElement("div");
+
+slot.className="slot";
+
+if(hotbarBlocks[i]==selectedBlock)
+slot.classList.add("active");
+
+
+slot.textContent=
+i==9?0:i+1;
+
+
+hotbar.appendChild(slot);
+
+}
+
+}
+
+updateHotbar();
 
 const CHUNK_SIZE=16;
 
@@ -1269,7 +1308,18 @@ e=>{
 
 keys[e.code]=true;
 
+if(e.code=="Digit1")selectedBlock=BLOCK.GRASS;
+if(e.code=="Digit2")selectedBlock=BLOCK.DIRT;
+if(e.code=="Digit3")selectedBlock=BLOCK.STONE;
+if(e.code=="Digit4")selectedBlock=BLOCK.SAND;
+if(e.code=="Digit5")selectedBlock=BLOCK.WOOD;
+if(e.code=="Digit6")selectedBlock=BLOCK.LEAF;
+if(e.code=="Digit7")selectedBlock=BLOCK.GLASS;
+if(e.code=="Digit8")selectedBlock=BLOCK.GLOW;
+if(e.code=="Digit9")selectedBlock=BLOCK.BRICK;
+if(e.code=="Digit0")selectedBlock=BLOCK.WATER;
 
+updateHotbar();
 
 if(
 e.code=="Space" &&
@@ -1801,7 +1851,7 @@ y,
 
 z-cz*CHUNK_SIZE,
 
-BLOCK.GRASS
+selectedBlock
 
 );
 
