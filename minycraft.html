@@ -148,8 +148,6 @@ Made with Three.js.
 <hr>
 Known bugs:
 <br>
-Movement across different axes is inverted XP
-<br>
 Noclipping into a block will lock you forever
 <hr>
 Btw its pronouced "Miney Craft, not mini craft"
@@ -1539,12 +1537,8 @@ let sin=Math.sin(yaw);
 let cos=Math.cos(yaw);
 
 
-let dx=
-(mx*cos)-(mz*sin);
-
-
-let dz=
-(mx*sin)+(mz*cos);
+let dx = (mx * cos) - (mz * sin);
+let dz = (mz * cos) + (mx * sin); 
 
 
 
