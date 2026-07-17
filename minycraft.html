@@ -290,12 +290,43 @@ let slot=document.createElement("div");
 
 slot.className="slot";
 
+
 if(hotbarBlocks[i]==selectedBlock)
 slot.classList.add("active");
 
 
-slot.textContent=
-i==9?0:i+1;
+
+let img=document.createElement("canvas");
+
+img.width=32;
+img.height=32;
+
+
+let ctx=img.getContext("2d");
+
+
+let tex=materials[hotbarBlocks[i]].map;
+
+
+if(tex&&tex.image){
+
+ctx.imageSmoothingEnabled=false;
+
+ctx.drawImage(
+tex.image,
+0,
+0,
+32,
+32
+);
+
+}
+
+
+slot.style.backgroundImage=
+`url(${img.toDataURL()})`;
+
+slot.style.backgroundSize="cover";
 
 
 hotbar.appendChild(slot);
