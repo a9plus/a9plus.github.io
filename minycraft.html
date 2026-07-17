@@ -314,6 +314,7 @@ let RENDER_DISTANCE=2;
 
 function updRen() {
   RENDER_DISTANCE = renderSlider.value;
+  loadChunks(player.x, player.z);
 }
 
 
