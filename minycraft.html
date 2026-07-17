@@ -37,7 +37,9 @@ gap:5px;
 .slot{
 width:45px;
 height:45px;
-background:#333;
+background-size:cover;
+background-position:center;
+background-repeat:no-repeat;
 border:3px solid #777;
 color:white;
 font-family:monospace;
@@ -296,37 +298,41 @@ slot.classList.add("active");
 
 
 
-let img=document.createElement("canvas");
-
-img.width=32;
-img.height=32;
+let mat=materials[hotbarBlocks[i]];
 
 
-let ctx=img.getContext("2d");
+
+if(mat.map){
+
+slot.style.backgroundImage=
+`url(${mat.map.image.toDataURL()})`;
+
+}else{
 
 
-let tex=materials[hotbarBlocks[i]].map;
+if(hotbarBlocks[i]==BLOCK.GLASS){
 
-
-if(tex&&tex.image){
-
-ctx.imageSmoothingEnabled=false;
-
-ctx.drawImage(
-tex.image,
-0,
-0,
-32,
-32
-);
+slot.style.background="#99ddff";
 
 }
 
 
-slot.style.backgroundImage=
-`url(${img.toDataURL()})`;
+if(hotbarBlocks[i]==BLOCK.GLOW){
 
-slot.style.backgroundSize="cover";
+slot.style.background="#ffff55";
+
+}
+
+
+if(hotbarBlocks[i]==BLOCK.WATER){
+
+slot.style.background="#2060ff";
+
+}
+
+
+}
+
 
 
 hotbar.appendChild(slot);
@@ -334,7 +340,6 @@ hotbar.appendChild(slot);
 }
 
 }
-
 updateHotbar();
 
 const CHUNK_SIZE=16;
