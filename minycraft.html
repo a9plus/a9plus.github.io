@@ -283,43 +283,6 @@ BLOCK.BRICK,
 BLOCK.WATER
 ];
 
-function updateHotbar(){ 
-  hotbar.innerHTML=""; 
-  
-  for(let i=0; i<hotbarBlocks.length; i++){ 
-    let slot=document.createElement("div"); 
-    slot.className="slot"; 
-    
-    if(hotbarBlocks[i]==selectedBlock) slot.classList.add("active"); 
-    
-    let img=document.createElement("canvas"); 
-    img.width=32; 
-    img.height=32; 
-    let ctx=img.getContext("2d"); 
-    
-    let tex=materials[hotbarBlocks[i]].map; 
-    
-    // Fallback lookups to ensure Three.js provides the raw image element
-    let actualImage = tex && (tex.image || (tex.source && tex.source.data) || tex.element);
-    
-    if(actualImage){ 
-      ctx.imageSmoothingEnabled=false; 
-      ctx.drawImage( actualImage, 0, 0, 32, 32 ); 
-    } 
-    
-    // Create the HTML img element instead of using slot.style.backgroundImage
-    let thumbnailImg = document.createElement("img");
-    thumbnailImg.src = img.toDataURL();
-    thumbnailImg.className = "hotbar-icon";
-    
-    // Append the image inside the slot
-    slot.appendChild(thumbnailImg);
-    
-    hotbar.appendChild(slot); 
-  } 
-} 
-updateHotbar();
-
 const CHUNK_SIZE=16;
 
 const RENDER_DISTANCE=2;
@@ -716,6 +679,43 @@ const cubeGeo=
 new THREE.BoxGeometry(
 1,1,1
 );
+
+function updateHotbar(){ 
+  hotbar.innerHTML=""; 
+  
+  for(let i=0; i<hotbarBlocks.length; i++){ 
+    let slot=document.createElement("div"); 
+    slot.className="slot"; 
+    
+    if(hotbarBlocks[i]==selectedBlock) slot.classList.add("active"); 
+    
+    let img=document.createElement("canvas"); 
+    img.width=32; 
+    img.height=32; 
+    let ctx=img.getContext("2d"); 
+    
+    let tex=materials[hotbarBlocks[i]].map; 
+    
+    // Fallback lookups to ensure Three.js provides the raw image element
+    let actualImage = tex && (tex.image || (tex.source && tex.source.data) || tex.element);
+    
+    if(actualImage){ 
+      ctx.imageSmoothingEnabled=false; 
+      ctx.drawImage( actualImage, 0, 0, 32, 32 ); 
+    } 
+    
+    // Create the HTML img element instead of using slot.style.backgroundImage
+    let thumbnailImg = document.createElement("img");
+    thumbnailImg.src = img.toDataURL();
+    thumbnailImg.className = "hotbar-icon";
+    
+    // Append the image inside the slot
+    slot.appendChild(thumbnailImg);
+    
+    hotbar.appendChild(slot); 
+  } 
+} 
+updateHotbar();
 // ---------- CHUNKS ----------
 
 let chunks={};
