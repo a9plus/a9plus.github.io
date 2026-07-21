@@ -1,0 +1,2085 @@
+<!DOCTYPE html>
+<!-- ok ignore all the whitespace I was copying from various repos and stack so bear with me -->
+<html>
+<head>
+<style>
+html,body{
+margin:0;
+overflow:hidden;
+background:#87ceeb;
+font-family:Arial;
+}
+
+canvas{
+display:block;
+}
+
+#cross{
+position:fixed;
+left:50%;
+top:50%;
+transform:translate(-50%,-50%);
+font-size:32px;
+color:white;
+text-shadow:0 0 5px black;
+pointer-events:none;
+}
+
+#hotbar{
+position:fixed;
+bottom:20px;
+left:50%;
+transform:translateX(-50%);
+display:flex;
+gap:5px;
+}
+
+.slot{
+  width:40px;
+  height:40px;
+  border:3px inset #222;
+  background:#555;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  overflow:hidden;
+  box-shadow:inset 0 0 0 2px #999;
+}
+
+.hotbar-icon {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  
+  /* CRITICAL: Keeps your noise textures crisp instead of blurry! */
+  image-rendering: pixelated; 
+}
+
+
+.active{
+  border-color:white;
+  background:#777;
+  transform:translateY(-5px);
+}
+
+
+#infoButton{
+position:fixed;
+right:15px;
+top:15px;
+width:42px;
+height:42px;
+background:#777;
+color:white;
+border:4px solid #222;
+font-family:monospace;
+font-size:24px;
+font-weight:bold;
+cursor:pointer;
+box-shadow:inset 0 0 0 3px #aaa;
+}
+
+#musixIN{
+position:fixed;
+left:15px;
+top:15px;
+height:42px;
+background:#777;
+color:white;
+border:4px solid #222;
+font-family:monospace;
+font-size:24px;
+font-weight:bold;
+cursor:default;
+box-shadow:inset 0 0 0 3px #aaa;
+}
+  
+#infoModal{
+position:fixed;
+left:50%;
+top:50%;
+transform:translate(-50%,-50%);
+background:#777;
+color:white;
+width:300px;
+padding:20px;
+border:5px outset #222;
+box-shadow:
+inset 0 0 0 4px #aaa,
+0 8px 20px #000;
+font-family:monospace;
+text-align:center;
+display:none;
+overflow: scroll;
+}
+
+
+#infoModal h2{
+margin-top:0;
+font-size:28px;
+letter-spacing:2px;
+}
+
+
+#infoModal button{
+background:#555;
+color:white;
+border:3px solid #222;
+padding:8px 18px;
+font-family:monospace;
+font-weight:bold;
+cursor:pointer;
+}
+
+
+#infoModal button:hover{
+background:#999;
+}
+
+
+#debug{
+position:fixed;
+left:10px;
+top:10px;
+color:white;
+font-family:monospace;
+font-size:14px;
+text-shadow:0 0 5px black;
+}
+</style>
+</head>
+
+<body>
+
+<div id="cross">+</div>
+
+<div id="hotbar"></div>
+
+<p id="musixIN"></p>
+  
+<button id="infoButton" onclick="togglemodal();">?</button>
+
+
+<div id="infoModal">
+
+<h2>MINYCRAFT</h2>
+
+<p>
+A tiny voxel survival world.
+<br><br>
+Build structures and
+explore!
+<br><br>
+Made with Three.js.
+<hr>
+Known bugs:
+<br>
+Noclipping into a block will lock you forever
+<hr>
+Btw its pronouced "Miney Craft, not mini craft"
+</p>
+<input type="range" min="1" max="5" value="2" id="sliderR">
+<button onclick="updRen();">Update render distance :)))</button><br><p>also 3+ is bad for not relly beefy pcs yk</p>
+  <button onclick="exportWorld();">Export World</button>
+  <button onclick="importWorld();">Import World</button>
+</div>
+
+
+<div id="debug"></div>
+<script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
+
+<script>
+const renderSlider = document.getElementById('sliderR');
+const modal = document.getElementById("infoModal");
+function togglemodal(){
+
+if(modal.style.display=="block"){
+
+modal.style.display="none";
+
+}else{
+
+modal.style.display="block";
+
+}
+
+}
+
+// This tracks the [x, y, z, x, y, z] numbers for each block type
+let blockArrays = {
+  grass: [],
+  dirt: [],
+  stone: [],
+  wood: [],
+  leaf: [],
+  sand: [],
+  glow: [],
+  brick: [],
+  water: [],
+  glass: []
+};
+
+
+
+const scene=new THREE.Scene();
+
+scene.background=new THREE.Color(0x87ceeb);
+
+scene.fog=new THREE.Fog(
+0x87ceeb,
+70,
+220
+);
+
+
+
+const camera=new THREE.PerspectiveCamera(
+75,
+innerWidth/innerHeight,
+0.1,
+500
+);
+
+
+
+const renderer=new THREE.WebGLRenderer({
+antialias:true
+});
+
+
+renderer.setSize(
+innerWidth,
+innerHeight
+);
+
+
+renderer.outputColorSpace=THREE.SRGBColorSpace;
+
+
+document.body.appendChild(
+renderer.domElement
+);
+
+
+
+
+// LIGHTING
+
+scene.add(
+new THREE.HemisphereLight(
+0xffffff,
+0x666666,
+2
+)
+);
+
+
+let sun=new THREE.DirectionalLight(
+0xffffff,
+1
+);
+
+sun.position.set(
+40,
+80,
+20
+);
+
+scene.add(sun);
+
+
+
+renderer.shadowMap.enabled=false;
+
+
+// BLOCKS
+
+const BLOCK={
+
+AIR:0,
+GRASS:1,
+DIRT:2,
+STONE:3,
+SAND:4,
+WOOD:5,
+LEAF:6,
+GLASS:7,
+GLOW:8,
+BRICK:9,
+WATER:10
+
+};
+
+
+let selectedBlock=BLOCK.GRASS;
+
+const hotbarBlocks=[
+BLOCK.GRASS,
+BLOCK.DIRT,
+BLOCK.STONE,
+BLOCK.SAND,
+BLOCK.WOOD,
+BLOCK.LEAF,
+BLOCK.GLASS,
+BLOCK.GLOW,
+BLOCK.BRICK,
+BLOCK.WATER
+];
+
+const CHUNK_SIZE=16;
+
+let RENDER_DISTANCE=2;
+
+function updRen() {
+  RENDER_DISTANCE = renderSlider.value;
+  loadChunks(player.x, player.z);
+}
+
+
+// TEXTURE GENERATOR
+
+
+function textureCanvas(draw){
+
+let c=document.createElement("canvas");
+
+c.width=16;
+c.height=16;
+
+
+let ctx=c.getContext("2d");
+
+
+draw(ctx);
+
+
+
+let tex=new THREE.CanvasTexture(c);
+
+tex.magFilter=THREE.NearestFilter;
+
+tex.colorSpace=THREE.SRGBColorSpace;
+
+
+return tex;
+
+}
+
+
+
+
+
+function noise(base,amount){
+
+return Math.floor(
+base+(Math.random()*amount*2-amount)
+);
+
+}
+
+
+
+
+
+
+
+// GRASS
+
+let grassTex=textureCanvas(ctx=>{
+
+
+for(let x=0;x<16;x++){
+
+for(let y=0;y<16;y++){
+
+
+let green=
+noise(150,30);
+
+
+ctx.fillStyle=
+`rgb(${noise(40,10)},${green},${noise(40,10)})`;
+
+
+ctx.fillRect(
+x,y,1,1
+);
+
+
+}
+
+}
+
+
+});
+
+
+
+
+
+
+// DIRT
+
+let dirtTex=textureCanvas(ctx=>{
+
+
+for(let x=0;x<16;x++){
+
+for(let y=0;y<16;y++){
+
+
+ctx.fillStyle=
+
+`rgb(${noise(130,20)},${noise(80,15)},${noise(40,10)})`;
+
+
+ctx.fillRect(
+x,y,1,1
+);
+
+
+}
+
+}
+
+
+});
+
+
+
+
+
+
+
+// STONE
+
+let stoneTex=textureCanvas(ctx=>{
+
+
+for(let x=0;x<16;x++){
+
+for(let y=0;y<16;y++){
+
+
+let n=noise(125,25);
+
+
+ctx.fillStyle=
+`rgb(${n},${n},${n})`;
+
+
+ctx.fillRect(
+x,y,1,1
+);
+
+
+}
+
+}
+
+
+});
+
+
+
+
+
+
+
+
+// SAND WAVY PATTERN
+
+let sandTex=textureCanvas(ctx=>{
+
+
+for(let x=0;x<16;x++){
+
+for(let y=0;y<16;y++){
+
+
+let wave=
+Math.sin(x*.8+y*.5)*10;
+
+
+ctx.fillStyle=
+
+`rgb(
+${noise(225+wave,15)},
+${noise(210+wave,15)},
+${noise(140+wave,10)}
+)`;
+
+
+ctx.fillRect(
+x,y,1,1
+);
+
+
+}
+
+}
+
+
+});
+
+
+
+
+
+
+
+// WOOD
+
+let woodTex=textureCanvas(ctx=>{
+
+
+for(let x=0;x<16;x++){
+
+for(let y=0;y<16;y++){
+
+
+let stripe=
+Math.sin(x*.8)*20;
+
+
+ctx.fillStyle=
+
+`rgb(
+${noise(130+stripe,15)},
+${noise(75+stripe,10)},
+${noise(30,8)}
+)`;
+
+
+ctx.fillRect(
+x,y,1,1
+);
+
+
+}
+
+}
+
+
+});
+
+
+
+
+
+
+
+// LEAVES
+
+let leafTex=textureCanvas(ctx=>{
+
+
+for(let x=0;x<16;x++){
+
+for(let y=0;y<16;y++){
+
+
+let alpha=
+Math.random()<.25?0:255;
+
+
+ctx.fillStyle=
+`rgba(
+${noise(40,15)},
+${noise(160,30)},
+${noise(60,20)},
+${alpha/255}
+)`;
+
+
+ctx.fillRect(
+x,y,1,1
+);
+
+
+}
+
+}
+
+
+});
+
+
+
+
+
+
+
+// BRICK
+
+let brickTex=textureCanvas(ctx=>{
+
+
+for(let x=0;x<16;x++){
+
+for(let y=0;y<16;y++){
+
+
+let line=
+(y%4==0||x%8==0);
+
+
+ctx.fillStyle=line?
+"#702020":
+`rgb(${noise(160,20)},${noise(55,10)},${noise(40,10)})`;
+
+
+ctx.fillRect(
+x,y,1,1
+);
+
+
+}
+
+}
+
+
+});
+
+
+
+
+
+
+// MATERIALS
+
+
+const materials={};
+
+
+materials[BLOCK.GRASS]=
+new THREE.MeshLambertMaterial({
+map:grassTex
+});
+
+
+materials[BLOCK.DIRT]=
+new THREE.MeshLambertMaterial({
+map:dirtTex
+});
+
+
+materials[BLOCK.STONE]=
+new THREE.MeshLambertMaterial({
+map:stoneTex
+});
+
+
+materials[BLOCK.SAND]=
+new THREE.MeshLambertMaterial({
+map:sandTex
+});
+
+
+materials[BLOCK.WOOD]=
+new THREE.MeshLambertMaterial({
+map:woodTex
+});
+
+
+materials[BLOCK.LEAF]=
+new THREE.MeshLambertMaterial({
+map:leafTex,
+transparent:true,
+alphaTest:.2
+});
+
+
+materials[BLOCK.GLASS]=
+new THREE.MeshPhongMaterial({
+color:0x99ddff,
+transparent:true,
+opacity:.45
+});
+
+
+materials[BLOCK.GLOW]=
+new THREE.MeshBasicMaterial({
+color:0xffff55
+});
+
+
+materials[BLOCK.BRICK]=
+new THREE.MeshLambertMaterial({
+map:brickTex
+});
+
+
+materials[BLOCK.WATER]=
+new THREE.MeshPhongMaterial({
+color:0x2060ff,
+transparent:true,
+opacity:.5
+});
+
+
+
+
+
+const cubeGeo=
+new THREE.BoxGeometry(
+1,1,1
+);
+
+function updateHotbar(){ 
+  hotbar.innerHTML=""; 
+  
+  for(let i=0; i<hotbarBlocks.length; i++){ 
+    let slot=document.createElement("div"); 
+    slot.className="slot"; 
+    
+    if(hotbarBlocks[i]==selectedBlock) slot.classList.add("active"); 
+    
+    let img=document.createElement("canvas"); 
+    img.width=32; 
+    img.height=32; 
+    let ctx=img.getContext("2d"); 
+    
+    let tex=materials[hotbarBlocks[i]].map; 
+    
+    // Fallback lookups to ensure Three.js provides the raw image element
+    let actualImage = tex && (tex.image || (tex.source && tex.source.data) || tex.element);
+    
+    if(actualImage){ 
+      ctx.imageSmoothingEnabled=false; 
+      ctx.drawImage( actualImage, 0, 0, 32, 32 ); 
+    } 
+    
+    // Create the HTML img element instead of using slot.style.backgroundImage
+    let thumbnailImg = document.createElement("img");
+    thumbnailImg.src = img.toDataURL();
+    thumbnailImg.className = "hotbar-icon";
+    
+    // Append the image inside the slot
+    slot.appendChild(thumbnailImg);
+    
+    hotbar.appendChild(slot); 
+  } 
+} 
+updateHotbar();
+
+const musix = {  
+  hills: "hills.mp3"
+};
+function exportWorld() {
+  const allData = {};
+  
+  for (let i = 0; i < localStorage.length; i++) {
+    const key = localStorage.key(i);
+    allData[key] = localStorage.getItem(key);
+  }
+  
+  const jsonString = JSON.stringify(allData, null, 2);
+  const blob = new Blob([jsonString], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = "minycraft_world.json";
+  
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+}
+
+function importWorld() {
+  const input = document.createElement("input");
+  input.type = "file";
+  input.accept = ".json";
+
+  input.onchange = (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const importedData = JSON.parse(e.target.result);
+        localStorage.clear();
+
+        for (const key in importedData) {
+          localStorage.setItem(key, importedData[key]);
+        }
+
+        location.reload();
+      } catch (error) {
+        alert("Invalid world file!");
+      }
+    };
+    reader.readAsText(file);
+  };
+
+  input.click();
+}
+
+const musixIndicator = document.getElementById('musixIN');
+const trackEntries = Object.entries(musix); 
+let currentAudio = new Audio();
+
+function playNextSong() {
+  const randomEntry = trackEntries[Math.floor(Math.random() * trackEntries.length)];
+  const songName = randomEntry[0]; 
+  const songFile = randomEntry[1]; 
+  
+  musixIndicator.textContent = "Now Playing: " + songName.charAt(0).toUpperCase() + songName.slice(1);
+  
+  currentAudio.src = songFile;
+  currentAudio.play();
+  
+  currentAudio.onended = () => {
+    musixIndicator.textContent = ""; 
+    
+    const randomMinutes = Math.random() * (4 - 2) + 2; 
+    const pauseInMilliseconds = randomMinutes * 60 * 1000;
+    
+    setTimeout(playNextSong, pauseInMilliseconds);
+  };
+}
+
+window.addEventListener('click', () => {
+  playNextSong();
+}, { once: true });
+
+
+// ---------- CHUNKS ----------
+
+let chunks={};
+
+
+
+function chunkKey(x,z){
+
+return x+","+z;
+
+}
+
+
+function blockKey(x,y,z){
+
+return x+","+y+","+z;
+
+}
+
+
+
+
+
+function getChunk(cx,cz){ 
+  let k=chunkKey(cx,cz); 
+  
+  if(!chunks[k]){ 
+    chunks[k]={ 
+      blocks:{}, 
+      mesh:null, 
+      cx:cx, 
+      cz:cz 
+    }; 
+    
+    // Check if the browser remembers this specific chunk key
+    let savedData = localStorage.getItem(`chunk_${k}`);
+    
+    if (savedData) {
+      // If it exists, unpack user's saved block layout directly into the chunk!
+      chunks[k].blocks = JSON.parse(savedData);
+    }
+  } 
+  
+  return chunks[k]; 
+}
+
+
+
+
+
+function setBlock(cx,cz,x,y,z,b){
+
+let c=getChunk(
+cx,
+cz
+);
+
+
+let k=blockKey(
+x,
+y,
+z
+);
+
+
+if(b)
+
+c.blocks[k]=b;
+
+else
+
+delete c.blocks[k];
+
+}
+
+
+
+
+
+function getBlock(x,y,z){
+
+
+let cx=Math.floor(
+x/CHUNK_SIZE
+);
+
+
+let cz=Math.floor(
+z/CHUNK_SIZE
+);
+
+
+
+let lx=x-cx*CHUNK_SIZE;
+
+let lz=z-cz*CHUNK_SIZE;
+
+
+
+let c=chunks[
+chunkKey(cx,cz)
+];
+
+
+
+if(!c)
+return 0;
+
+
+
+return c.blocks[
+blockKey(lx,y,lz)
+]||0;
+
+
+}
+
+
+
+
+
+
+// ---------- TERRAIN ----------
+
+
+function terrainHeight(x,z){
+
+
+let n=
+
+Math.sin(x*.08)+
+Math.cos(z*.1)+
+Math.sin((x+z)*.04);
+
+
+
+return Math.floor(
+8+n*3
+);
+
+
+}
+
+
+
+
+
+function generateChunk(cx,cz){
+
+
+let c=getChunk(
+cx,
+cz
+);
+
+
+if(Object.keys(c.blocks).length)
+return;
+
+
+
+
+
+for(let x=0;x<CHUNK_SIZE;x++){
+
+
+for(let z=0;z<CHUNK_SIZE;z++){
+
+
+
+let wx=
+cx*CHUNK_SIZE+x;
+
+
+let wz=
+cz*CHUNK_SIZE+z;
+
+
+
+let h=
+terrainHeight(
+wx,
+wz
+);
+
+
+
+
+
+for(let y=0;y<=h;y++){
+
+
+let b;
+
+
+
+if(y==h)
+
+b=BLOCK.GRASS;
+
+
+else if(y>h-3)
+
+b=BLOCK.DIRT;
+
+
+else
+
+b=BLOCK.STONE;
+
+
+
+
+setBlock(
+cx,
+cz,
+x,
+y,
+z,
+b
+);
+
+
+}
+
+
+
+
+
+
+// trees
+
+
+if(
+Math.random()<.035 &&
+h>6
+){
+
+
+
+for(let y=1;y<=4;y++){
+
+setBlock(
+cx,
+cz,
+x,
+h+y,
+z,
+BLOCK.WOOD
+);
+
+}
+
+
+
+
+
+for(let xx=-2;xx<=2;xx++){
+
+
+for(let zz=-2;zz<=2;zz++){
+
+
+if(
+Math.abs(xx)+Math.abs(zz)<4
+){
+
+
+setBlock(
+cx,
+cz,
+x+xx,
+h+5,
+z+zz,
+BLOCK.LEAF
+);
+
+
+}
+
+
+}
+
+
+}
+
+
+
+}
+
+
+
+
+}
+
+
+}
+
+
+
+}
+
+
+
+
+
+
+
+// ---------- BLOCK VISIBILITY ----------
+
+
+function visibleBlock(x,y,z){
+
+
+return(
+
+getBlock(x+1,y,z)==0 ||
+
+getBlock(x-1,y,z)==0 ||
+
+getBlock(x,y+1,z)==0 ||
+
+getBlock(x,y-1,z)==0 ||
+
+getBlock(x,y,z+1)==0 ||
+
+getBlock(x,y,z-1)==0
+
+);
+
+
+}
+
+
+
+
+
+
+
+// ---------- BUILD CHUNK ----------
+
+
+function rebuildChunk(cx,cz){
+
+let c=getChunk(
+cx,
+cz
+);
+
+
+
+if(c.mesh){
+
+scene.remove(
+c.mesh
+);
+
+}
+
+
+
+
+let group=
+new THREE.Group();
+
+
+
+
+
+for(let k in c.blocks){
+
+
+let p=
+k.split(",").map(Number);
+
+
+
+let wx=
+cx*CHUNK_SIZE+p[0];
+
+
+let wz=
+cz*CHUNK_SIZE+p[2];
+
+
+
+
+
+if(!visibleBlock(
+wx,
+p[1],
+wz
+))
+continue;
+
+
+
+
+
+let mesh=
+new THREE.Mesh(
+cubeGeo,
+materials[c.blocks[k]]
+);
+
+
+
+mesh.position.set(
+
+wx+.5,
+
+p[1]+.5,
+
+wz+.5
+
+);
+
+
+
+
+
+mesh.userData.block=true;
+
+
+mesh.userData.pos=[
+
+wx,
+
+p[1],
+
+wz
+
+];
+
+
+
+group.add(mesh);
+
+
+
+}
+
+
+
+
+scene.add(group);
+
+
+c.mesh=group;
+
+
+}
+
+
+
+
+let autosaveTimeout;
+
+function triggerAutosave() {
+  // 1. If you are clicking fast to break/place multiple blocks, 
+  // clear the old timer so the game doesn't stutter or freeze.
+  clearTimeout(autosaveTimeout);
+
+  // 2. Wait 500 milliseconds (half a second) of quiet time before saving.
+  autosaveTimeout = setTimeout(() => {
+    
+    // 3. Loop through every single active chunk in your game engine memory
+    for (let key in chunks) {
+      let c = chunks[key];
+      
+      // Check if the chunk exists and has blocks placed inside it
+      if (c && c.blocks && Object.keys(c.blocks).length > 0) {
+        
+        // 4. Pack the entire chunk's block object into a tiny JSON string 
+        // Example structure saved: {"0,5,0": 1, "0,4,0": 3}
+        let packedChunkData = JSON.stringify(c.blocks);
+        
+        // 5. Store it directly in LocalStorage labeled by its unique chunk key (like "chunk_0,0")
+        localStorage.setItem(`chunk_${key}`, packedChunkData);
+        
+      } else {
+        // If a chunk becomes completely empty (you broke all the custom blocks), 
+        // remove its save file so it doesn't take up empty storage space.
+        localStorage.removeItem(`chunk_${key}`);
+      }
+    }
+    
+    console.log("Minycraft Chunk-Autosave completed in background!");
+  }, 500); // 500ms delay
+}
+
+
+
+// ---------- LOAD AREA ----------
+
+
+function loadChunks(px,pz){
+
+
+let cx=
+Math.floor(
+px/CHUNK_SIZE
+);
+
+
+let cz=
+Math.floor(
+pz/CHUNK_SIZE
+);
+
+
+
+
+
+for(let x=-RENDER_DISTANCE;x<=RENDER_DISTANCE;x++){
+
+
+for(let z=-RENDER_DISTANCE;z<=RENDER_DISTANCE;z++){
+
+
+
+let nx=cx+x;
+
+let nz=cz+z;
+
+
+
+generateChunk(
+nx,
+nz
+);
+
+
+rebuildChunk(
+nx,
+nz
+);
+
+
+
+}
+
+
+}
+
+
+
+
+
+
+
+// unload
+
+
+for(let k in chunks){
+
+
+let c=chunks[k];
+
+
+if(
+
+Math.abs(c.cx-cx)>RENDER_DISTANCE ||
+
+Math.abs(c.cz-cz)>RENDER_DISTANCE
+
+){
+
+
+if(c.mesh)
+
+scene.remove(c.mesh);
+
+triggerAutosave();
+  
+delete chunks[k];
+
+
+}
+
+
+}
+
+
+
+}
+
+// ---------- PLAYER ----------
+
+
+let player={
+
+x:0,
+
+y:15,
+
+z:0,
+
+vy:0,
+
+ground:false,
+
+height:1.8,
+
+radius:.35
+
+};
+
+
+
+let yaw=0;
+
+let pitch=0;
+
+let keys={};
+
+
+
+camera.position.set(
+player.x,
+player.y+1.6,
+player.z
+);
+
+
+
+
+
+// ---------- INPUT ----------
+
+
+document.addEventListener(
+"keydown",
+e=>{
+
+
+keys[e.code]=true;
+
+if(e.code=="Digit1")selectedBlock=BLOCK.GRASS;
+if(e.code=="Digit2")selectedBlock=BLOCK.DIRT;
+if(e.code=="Digit3")selectedBlock=BLOCK.STONE;
+if(e.code=="Digit4")selectedBlock=BLOCK.SAND;
+if(e.code=="Digit5")selectedBlock=BLOCK.WOOD;
+if(e.code=="Digit6")selectedBlock=BLOCK.LEAF;
+if(e.code=="Digit7")selectedBlock=BLOCK.GLASS;
+if(e.code=="Digit8")selectedBlock=BLOCK.GLOW;
+if(e.code=="Digit9")selectedBlock=BLOCK.BRICK;
+if(e.code=="Digit0")selectedBlock=BLOCK.WATER;
+
+updateHotbar();
+
+if(
+e.code=="Space" &&
+player.ground
+){
+
+player.vy=.28;
+
+player.ground=false;
+
+}
+
+
+});
+
+
+
+
+
+document.addEventListener(
+"keyup",
+e=>{
+
+keys[e.code]=false;
+
+});
+
+
+
+
+
+
+
+renderer.domElement.onclick=()=>{
+
+renderer.domElement.requestPointerLock();
+
+};
+
+
+
+
+
+
+document.addEventListener(
+"mousemove",
+e=>{
+
+
+if(
+document.pointerLockElement
+){
+
+
+yaw-=e.movementX*.002;
+
+
+pitch-=e.movementY*.002;
+
+
+pitch=Math.max(
+-1.5,
+Math.min(
+1.5,
+pitch
+)
+);
+
+
+}
+
+
+});
+
+
+
+
+
+
+
+// ---------- COLLISION ----------
+
+
+
+function solid(x,y,z){
+
+return getBlock(
+Math.floor(x),
+Math.floor(y),
+Math.floor(z)
+)!=0;
+
+}
+
+
+
+
+
+function collision(x,y,z){
+
+
+let r=player.radius;
+
+let h=player.height;
+
+
+
+return(
+
+solid(x-r,y,z-r) ||
+
+solid(x+r,y,z-r) ||
+
+solid(x-r,y,z+r) ||
+
+solid(x+r,y,z+r) ||
+
+
+solid(x-r,y+h,z-r) ||
+
+solid(x+r,y+h,z-r) ||
+
+solid(x-r,y+h,z+r) ||
+
+solid(x+r,y+h,z+r)
+
+);
+
+
+
+}
+
+
+
+
+
+
+
+function physics(){
+
+
+player.vy-=.012;
+
+
+
+let ny=
+player.y+player.vy;
+
+
+
+
+
+if(player.vy<=0){
+
+
+
+if(
+collision(
+player.x,
+ny-1.8,
+player.z
+)
+){
+
+
+
+player.vy=0;
+
+player.ground=true;
+
+
+
+while(
+collision(
+player.x,
+player.y-1.8,
+player.z
+)
+){
+
+player.y+=.01;
+
+}
+
+
+
+}
+
+else{
+
+
+player.y=ny;
+
+player.ground=false;
+
+
+}
+
+
+
+}
+
+else{
+
+
+if(
+!collision(
+player.x,
+ny,
+player.z
+)
+){
+
+player.y=ny;
+
+}
+
+else{
+
+player.vy=0;
+
+}
+
+
+
+}
+
+
+}
+
+
+
+
+
+
+
+
+// ---------- MOVEMENT ----------
+
+
+function move(){
+
+let speed=.12;
+
+let mx=0;
+let mz=0;
+
+
+if(keys["KeyW"]) mz-=1;
+if(keys["KeyS"]) mz+=1;
+if(keys["KeyA"]) mx-=1;
+if(keys["KeyD"]) mx+=1;
+
+
+if(mx||mz){
+
+let len=Math.hypot(mx,mz);
+
+mx/=len;
+mz/=len;
+
+
+// camera yaw conversion
+let sin=Math.sin(yaw);
+let cos=Math.cos(yaw);
+
+
+let dx = (mx * cos) + (mz * sin);
+let dz = (mz * cos) + (mx * sin); 
+
+
+
+let nx=player.x+dx*speed;
+
+
+if(!collision(
+nx,
+player.y,
+player.z
+)){
+
+player.x=nx;
+
+}
+
+
+
+let nz=player.z+dz*speed;
+
+
+if(!collision(
+player.x,
+player.y,
+nz
+)){
+
+player.z=nz;
+
+}
+
+
+}
+
+}
+
+
+
+
+
+
+
+// ---------- CAMERA ----------
+
+
+function updateCamera(){
+
+
+camera.position.set(
+
+player.x,
+
+player.y+1.6,
+
+player.z
+
+);
+
+
+
+camera.rotation.order="YXZ";
+
+
+camera.rotation.y=yaw;
+
+camera.rotation.x=pitch;
+
+
+}
+
+
+
+
+
+
+
+// ---------- BLOCK EDITING ----------
+
+
+let raycaster=
+new THREE.Raycaster();
+
+
+
+
+
+function targetBlock(){
+
+
+raycaster.setFromCamera(
+
+new THREE.Vector2(0,0),
+
+camera
+
+);
+
+
+
+let hits=
+raycaster.intersectObjects(
+scene.children,
+true
+);
+
+
+
+for(let h of hits){
+
+
+if(
+h.object.userData.block
+)
+
+return h;
+
+
+}
+
+
+
+return null;
+
+
+}
+
+
+
+
+
+
+renderer.domElement.oncontextmenu=e=>{
+
+e.preventDefault();
+
+};
+
+
+
+
+
+
+renderer.domElement.addEventListener(
+"mousedown",
+e=>{
+
+
+let hit=
+targetBlock();
+
+
+
+if(!hit)
+return;
+
+
+
+
+let p=
+hit.object.userData.pos;
+
+
+
+
+
+  if(e.button==0){ 
+    let cx = Math.floor( p[0]/CHUNK_SIZE ); 
+    let cz = Math.floor( p[2]/CHUNK_SIZE ); 
+
+    setBlock( cx, cz, p[0]-cx*CHUNK_SIZE, p[1], p[2]-cz*CHUNK_SIZE, 0 ); 
+    rebuildChunk( cx, cz ); 
+
+    triggerAutosave(); 
+  } 
+  
+  if(e.button==2){ 
+    let n = hit.face.normal; 
+    let x = p[0]+n.x; 
+    let y = p[1]+n.y; 
+    let z = p[2]+n.z; 
+    let cx = Math.floor( x/CHUNK_SIZE ); 
+    let cz = Math.floor( z/CHUNK_SIZE ); 
+
+    setBlock( cx, cz, x-cx*CHUNK_SIZE, y, z-cz*CHUNK_SIZE, selectedBlock ); 
+    rebuildChunk( cx, cz ); 
+
+    triggerAutosave(); 
+  } 
+});
+
+
+
+
+
+
+
+
+
+// ---------- GAME LOOP ----------
+
+
+
+let lastCX=null;
+
+let lastCZ=null;
+
+
+
+
+
+function loop(){
+
+
+
+move();
+
+
+physics();
+
+
+updateCamera();
+
+
+
+
+
+let cx=
+Math.floor(
+player.x/CHUNK_SIZE
+);
+
+
+let cz=
+Math.floor(
+player.z/CHUNK_SIZE
+);
+
+
+
+
+if(
+cx!==lastCX ||
+cz!==lastCZ
+){
+
+
+loadChunks(
+player.x,
+player.z
+);
+
+
+
+lastCX=cx;
+
+lastCZ=cz;
+
+
+}
+
+
+
+
+
+renderer.render(
+scene,
+camera
+);
+
+
+
+requestAnimationFrame(loop);
+
+
+}
+
+
+
+
+
+
+
+loadChunks(
+player.x,
+player.z
+);
+
+
+
+loop();
+
+
+
+
+
+
+window.onresize=()=>{
+
+
+camera.aspect=
+innerWidth/innerHeight;
+
+
+camera.updateProjectionMatrix();
+
+
+renderer.setSize(
+innerWidth,
+innerHeight
+);
+
+
+};
+</script>
+
+</body>
+</html>
