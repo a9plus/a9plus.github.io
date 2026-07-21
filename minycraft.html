@@ -154,8 +154,6 @@ text-shadow:0 0 5px black;
 <div id="cross">+</div>
 
 <div id="hotbar"></div>
-
-<p id="musixIN"></p>
   
 <button id="infoButton" onclick="togglemodal();">?</button>
 
@@ -180,8 +178,6 @@ Btw its pronouced "Miney Craft, not mini craft"
 </p>
 <input type="range" min="1" max="5" value="2" id="sliderR">
 <button onclick="updRen();">Update render distance :)))</button><br><p>also 3+ is bad for not relly beefy pcs yk</p>
-  <button onclick="exportWorld();">Export World</button>
-  <button onclick="importWorld();">Import World</button>
 </div>
 
 
@@ -763,9 +759,7 @@ function updateHotbar(){
 } 
 updateHotbar();
 
-const musix = {  
-  hills: "hills.mp3"
-};
+
 function exportWorld() {
   const allData = {};
   
@@ -817,35 +811,6 @@ function importWorld() {
 
   input.click();
 }
-
-const musixIndicator = document.getElementById('musixIN');
-const trackEntries = Object.entries(musix); 
-let currentAudio = new Audio();
-
-function playNextSong() {
-  const randomEntry = trackEntries[Math.floor(Math.random() * trackEntries.length)];
-  const songName = randomEntry[0]; 
-  const songFile = randomEntry[1]; 
-  
-  musixIndicator.textContent = "Now Playing: " + songName.charAt(0).toUpperCase() + songName.slice(1);
-  
-  currentAudio.src = songFile;
-  currentAudio.play();
-  
-  currentAudio.onended = () => {
-    musixIndicator.textContent = ""; 
-    
-    const randomMinutes = Math.random() * (4 - 2) + 2; 
-    const pauseInMilliseconds = randomMinutes * 60 * 1000;
-    
-    setTimeout(playNextSong, pauseInMilliseconds);
-  };
-}
-
-window.addEventListener('click', () => {
-  playNextSong();
-}, { once: true });
-
 
 // ---------- CHUNKS ----------
 
