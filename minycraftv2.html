@@ -1009,7 +1009,7 @@ function generateChunk(cx,cz){
         for(let z=0;z<CHUNK_SIZE;z++){
             let wx= cx*CHUNK_SIZE+x;
             let wz= cz*CHUNK_SIZE+z;
-            let h= terrainHeight( wx, wz );
+            let h = terrainHeight( wx, wz );
             
             let isRocky = (Math.sin(wx * 0.15) + Math.cos(wz * 0.15)) > 0.6;
             
@@ -1035,7 +1035,9 @@ function generateChunk(cx,cz){
 
             for(let y=0;y<=h;y++){
                 let b;
-                if(y==h){
+                if (y === 0) {
+                    b = BLOCK.STONE;
+                } else if(y==h){
                     if (isBeach) b = BLOCK.SAND;
                     else if (isRocky) b = BLOCK.STONE;
                     else b = BLOCK.GRASS;
@@ -1055,7 +1057,9 @@ function generateChunk(cx,cz){
                 }
             }
             
-            if( Math.random()<.035 && h>SEA_LEVEL && !isBeach && !isRocky ){
+            let treeHash = Math.abs(Math.sin(wx * 12.9898 + wz * 78.233) * 43758.5453) % 1;
+            
+            if( treeHash < 0.035 && h>SEA_LEVEL && !isBeach && !isRocky ){
                 for(let y=1;y<=4;y++){
                     setBlock( cx, cz, x, h+y, z, BLOCK.WOOD );
                 }
@@ -1070,6 +1074,7 @@ function generateChunk(cx,cz){
         }
     }
 }
+
 
 // ---------- BLOCK VISIBILITY ----------
 
