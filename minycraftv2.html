@@ -1,3 +1,4 @@
+<!-- tuff -->
 <!DOCTYPE html>
 <!-- ok ignore all the whitespace I was copying from various repos and stack so bear with me -->
 <html>
@@ -1437,7 +1438,6 @@ delete chunks[k];
 function tick3DWaterPhysics() {
     let activeWaterBlocks = [];
     
-    // 1. Gather all water snapshots across loaded chunks
     for (let ck in chunks) {
         let chunk = chunks[ck];
         for (let bk in chunk.blocks) {
@@ -1449,8 +1449,6 @@ function tick3DWaterPhysics() {
                 let localPos = bk.split(",").map(Number);
                 let wx = chunk.cx * CHUNK_SIZE + localPos[0];
                 let wz = chunk.cz * CHUNK_SIZE + localPos[2];
-                
-                // Sources are always full level 4. Flows parse their exact historical level.
                 let currentLvl = isSource ? 4 : parseInt(val.split("_F_")[1]);
                 activeWaterBlocks.push({ x: wx, y: localPos[1], z: wz, lvl: currentLvl, source: isSource });
             }
@@ -1460,26 +1458,21 @@ function tick3DWaterPhysics() {
     let newBlocksToPlace = [];
     let chunksToRebuild = new Set();
 
-    // Helper to extract absolute levels out of your custom string arrays
     function checkBlock(x, y, z) {
         let b = getBlock(x, y, z);
         if (b === BLOCK.WATER) return 4;
         if (typeof b === "string" && b.startsWith(BLOCK.WATER + "_F_")) return parseInt(b.split("_F_")[1]);
-        return b; // Returns BLOCK.AIR (0) or solid block IDs
+        return b; 
     }
 
-    // 2. Compute smooth vertical cascades and limited horizontal pressure decays
     activeWaterBlocks.forEach(w => {
-        let blockBelow = checkBlock(w.x, w.y - 1, w.z);
+        let blockBelow = getBlock(w.x, w.y - 1, w.z);
         
-        // A. Gravity Cascade
+        // Water can ONLY fall down if the block below is completely empty air
         if (blockBelow === BLOCK.AIR) {
-            // A Source block generates a strong full level 4 stream downward.
-            // A Flowing block drops its water downward but maintains its current level constraints!
             let downLvl = w.source ? 4 : w.lvl; 
-            newBlocksToPlace.push({ x: w.x, y: w.y - 1, z: w.z, lvl: downLvl, type: "flow" });
+            newBlocksToPlace.push({ x: w.x, y: w.y - 1, z: w.z, lvl: downLvl });
         } 
-        // B. Horizontal Sideways Spread
         else {
             let spreadLvl = w.lvl - 1;
             if (spreadLvl > 0) {
@@ -1490,40 +1483,41 @@ function tick3DWaterPhysics() {
                     { x: w.x, y: w.y, z: w.z - 1 }
                 ];
                 neighbors.forEach(n => {
-                    let targetBlock = checkBlock(n.x, n.y, n.z);
-                    // Only expand into air, or overwrite weaker water paths if our pressure is higher
-                    if (targetBlock === BLOCK.AIR || (targetBlock > 0 && targetBlock < spreadLvl)) {
-                        newBlocksToPlace.push({ x: n.x, y: n.y, z: n.z, lvl: spreadLvl, type: "flow" });
+                    let targetRawBlock = getBlock(n.x, n.y, n.z);
+                    let targetWaterLvl = checkBlock(n.x, n.y, n.z);
+
+                    // CRITICAL FIX: Only spread if the block is AIR, or if it is already water but has lower pressure
+                    if (targetRawBlock === BLOCK.AIR || (typeof targetRawBlock === "string" && targetRawBlock.startsWith(BLOCK.WATER + "_F_") && targetWaterLvl < spreadLvl)) {
+                        newBlocksToPlace.push({ x: n.x, y: n.y, z: n.z, lvl: spreadLvl });
                     }
                 });
             }
         }
     });
 
-    // 3. Save calculations directly to chunk memory
     newBlocksToPlace.forEach(nb => {
         let cx = Math.floor(nb.x / CHUNK_SIZE);
         let cz = Math.floor(nb.z / CHUNK_SIZE);
         let lx = nb.x - cx * CHUNK_SIZE;
         let lz = nb.z - cz * CHUNK_SIZE;
         
-        let existing = checkBlock(nb.x, nb.y, nb.z);
-        if (existing === BLOCK.AIR || existing < nb.lvl) {
-            // Store as a Flowing Block syntax tag to prevent it from acting as a source later
-            let valueToStore = BLOCK.WATER + "_F_" + nb.lvl;
+        let existingRaw = getBlock(nb.x, nb.y, nb.z);
+        let existingLvl = checkBlock(nb.x, nb.y, nb.z);
+        
+        // Double check to make sure we don't accidentally stomp a solid block during application
+        if (existingRaw === BLOCK.AIR || (typeof existingRaw === "string" && existingRaw.startsWith(BLOCK.WATER + "_F_") && existingLvl < nb.lvl)) {
+            let valueToStore = nb.lvl === 4 ? BLOCK.WATER : BLOCK.WATER + "_F_" + nb.lvl;
             setBlock(cx, cz, lx, nb.y, lz, valueToStore);
             chunksToRebuild.add(chunkKey(cx, cz));
         }
     });
 
-    // 4. Update the visual meshes
     chunksToRebuild.forEach(ckey => {
         let p = ckey.split(",").map(Number);
         rebuildChunk(p[0], p[1]);
         triggerAutosave();
     });
 
-    // 5. Clean up array memory buffers completely
     activeWaterBlocks = null;
     newBlocksToPlace = null;
 }
