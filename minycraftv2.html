@@ -1000,165 +1000,76 @@ function terrainHeight(x, z) {
 
 
 function generateChunk(cx,cz){
+    let c=getChunk( cx, cz );
+    if(Object.keys(c.blocks).length) return;
+    
+    const SEA_LEVEL = 7;
+    
+    for(let x=0;x<CHUNK_SIZE;x++){
+        for(let z=0;z<CHUNK_SIZE;z++){
+            let wx= cx*CHUNK_SIZE+x;
+            let wz= cz*CHUNK_SIZE+z;
+            let h= terrainHeight( wx, wz );
+            
+            let isRocky = (Math.sin(wx * 0.15) + Math.cos(wz * 0.15)) > 0.6;
+            
+            let isBeach = false;
+            if (h >= SEA_LEVEL && h <= SEA_LEVEL + 2) {
+                isBeach = true;
+            } else if (h < SEA_LEVEL) {
+                isBeach = true;
+            } else {
+                for (let dx = -3; dx <= 3; dx++) {
+                    for (let dz = -3; dz <= 3; dz++) {
+                        if (Math.abs(dx) + Math.abs(dz) <= 3) {
+                            let nh = terrainHeight(wx + dx, wz + dz);
+                            if (nh < SEA_LEVEL) {
+                                isBeach = true;
+                                break;
+                            }
+                        }
+                    }
+                    if (isBeach) break;
+                }
+            }
 
-
-let c=getChunk(
-cx,
-cz
-);
-
-
-if(Object.keys(c.blocks).length)
-return;
-
-
-
-
-
-for(let x=0;x<CHUNK_SIZE;x++){
-
-
-for(let z=0;z<CHUNK_SIZE;z++){
-
-
-
-let wx=
-cx*CHUNK_SIZE+x;
-
-
-let wz=
-cz*CHUNK_SIZE+z;
-
-
-
-let h=
-terrainHeight(
-wx,
-wz
-);
-
-
-
-
-
-for(let y=0;y<=h;y++){
-
-
-let b;
-
-
-
-if(y==h)
-
-b=BLOCK.GRASS;
-
-
-else if(y>h-3)
-
-b=BLOCK.DIRT;
-
-
-else
-
-b=BLOCK.STONE;
-
-
-
-
-setBlock(
-cx,
-cz,
-x,
-y,
-z,
-b
-);
-
-
+            for(let y=0;y<=h;y++){
+                let b;
+                if(y==h){
+                    if (isBeach) b = BLOCK.SAND;
+                    else if (isRocky) b = BLOCK.STONE;
+                    else b = BLOCK.GRASS;
+                } else if(y>h-3){
+                    if (isBeach) b = BLOCK.SAND;
+                    else if (isRocky) b = BLOCK.STONE;
+                    else b = BLOCK.DIRT;
+                } else {
+                    b = BLOCK.STONE;
+                }
+                setBlock( cx, cz, x, y, z, b );
+            }
+            
+            if(h < SEA_LEVEL){
+                for(let y=h+1; y<=SEA_LEVEL; y++){
+                    setBlock( cx, cz, x, y, z, BLOCK.WATER );
+                }
+            }
+            
+            if( Math.random()<.035 && h>SEA_LEVEL && !isBeach && !isRocky ){
+                for(let y=1;y<=4;y++){
+                    setBlock( cx, cz, x, h+y, z, BLOCK.WOOD );
+                }
+                for(let xx=-2;xx<=2;xx++){
+                    for(let zz=-2;zz<=2;zz++){
+                        if( Math.abs(xx)+Math.abs(zz)<4 ){
+                            setBlock( cx, cz, x+xx, h+5, z+zz, BLOCK.LEAF );
+                        }
+                    }
+                }
+            }
+        }
+    }
 }
-
-
-
-
-
-
-// trees
-
-
-if(
-Math.random()<.035 &&
-h>6
-){
-
-
-
-for(let y=1;y<=4;y++){
-
-setBlock(
-cx,
-cz,
-x,
-h+y,
-z,
-BLOCK.WOOD
-);
-
-}
-
-
-
-
-
-for(let xx=-2;xx<=2;xx++){
-
-
-for(let zz=-2;zz<=2;zz++){
-
-
-if(
-Math.abs(xx)+Math.abs(zz)<4
-){
-
-
-setBlock(
-cx,
-cz,
-x+xx,
-h+5,
-z+zz,
-BLOCK.LEAF
-);
-
-
-}
-
-
-}
-
-
-}
-
-
-
-}
-
-
-
-
-}
-
-
-}
-
-
-
-}
-
-
-
-
-
-
 
 // ---------- BLOCK VISIBILITY ----------
 
