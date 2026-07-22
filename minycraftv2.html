@@ -1413,15 +1413,7 @@ function tick3DWaterPhysics() {
             let downLvl = w.source ? 4 : w.lvl;
             newBlocksToPlace.push({ x: w.x, y: w.y - 1, z: w.z, lvl: downLvl });
         } else {
-            let fallBonus = 0;
-            if (checkBlock(w.x, w.y + 1, w.z) > 0) {
-                fallBonus += 1;
-                if (checkBlock(w.x, w.y + 2, w.z) > 0) {
-                    fallBonus += 1;
-                }
-            }
-            let spreadLvl = w.lvl - 1 + fallBonus;
-            if (spreadLvl > 6) spreadLvl = 6;
+            let spreadLvl = w.lvl - 1;
             if (spreadLvl > 0) {
                 let neighbors = [
                     { x: w.x + 1, y: w.y, z: w.z },
