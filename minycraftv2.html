@@ -297,21 +297,8 @@ renderer.shadowMap.enabled=false;
 
 // BLOCKS
 
-const BLOCK={
+const BLOCK={ AIR:0, GRASS:1, DIRT:2, STONE:3, SAND:4, WOOD:5, LEAF:6, GLASS:7, GLOW:8, BRICK:9, WATER:10, WATER_STATIC:11 };
 
-AIR:0,
-GRASS:1,
-DIRT:2,
-STONE:3,
-SAND:4,
-WOOD:5,
-LEAF:6,
-GLASS:7,
-GLOW:8,
-BRICK:9,
-WATER:10
-
-};
 
 
 let selectedBlock=BLOCK.GRASS;
@@ -721,6 +708,12 @@ opacity:.5
 });
 
 
+materials[BLOCK.WATER_STATIC] =
+new THREE.MeshPhongMaterial({
+color:0x1030ff,
+transparent:true,
+opacity:.3
+});
 
 
 
@@ -1052,10 +1045,11 @@ function generateChunk(cx,cz){
             }
             
             if(h < SEA_LEVEL){
-                for(let y=h+1; y<=SEA_LEVEL; y++){
-                    setBlock( cx, cz, x, y, z, BLOCK.WATER );
-                }
-            }
+    for(let y=h+1; y<=SEA_LEVEL; y++){
+        setBlock( cx, cz, x, y, z, BLOCK.WATER_STATIC );
+    }
+}
+
             
             let treeHash = Math.abs(Math.sin(wx * 12.9898 + wz * 78.233) * 43758.5453) % 1;
             
@@ -1357,7 +1351,8 @@ delete chunks[k];
 
 function tick3DWaterPhysics() {
     let activeWaterBlocks = [];
-    
+    let sourceMap = {};
+
     for (let ck in chunks) {
         let chunk = chunks[ck];
         for (let bk in chunk.blocks) {
@@ -1370,43 +1365,64 @@ function tick3DWaterPhysics() {
                 let wx = chunk.cx * CHUNK_SIZE + localPos[0];
                 let wz = chunk.cz * CHUNK_SIZE + localPos[2];
                 let currentLvl = isSource ? 4 : parseInt(val.split("_F_")[1]);
+                
                 activeWaterBlocks.push({ x: wx, y: localPos[1], z: wz, lvl: currentLvl, source: isSource });
+                if (isSource) sourceMap[`${wx},${localPos[1]},${wz}`] = true;
             }
         }
     }
 
     let newBlocksToPlace = [];
+    let blocksToRemove = [];
     let chunksToRebuild = new Set();
 
     function checkBlock(x, y, z) {
+        if (y < 0) return -1;
         let b = getBlock(x, y, z);
         if (b === BLOCK.WATER) return 4;
         if (typeof b === "string" && b.startsWith(BLOCK.WATER + "_F_")) return parseInt(b.split("_F_")[1]);
         return b; 
     }
 
+    // Process blocks and track orphans
     activeWaterBlocks.forEach(w => {
         let blockBelow = getBlock(w.x, w.y - 1, w.z);
-        
-        // Water can ONLY fall down if the block below is completely empty air
+        let hasParentSource = false;
+
+        // Trace if this flow is still receiving water pressure from a nearby block
+        if (!w.source) {
+            let traceNeighbors = [
+                {x: w.x, y: w.y+1, z: w.z}, {x: w.x+1, y: w.y, z: w.z},
+                {x: w.x-1, y: w.y, z: w.z}, {x: w.x, y: w.y, z: w.z+1}, {x: w.x, y: w.y, z: w.z-1}
+            ];
+            traceNeighbors.forEach(tn => {
+                let nbLvl = checkBlock(tn.x, tn.y, tn.z);
+                if (nbLvl > w.lvl || (tn.y === w.y + 1 && nbLvl === 4)) hasParentSource = true;
+            });
+            
+            // IF SOURCE IS BROKEN: Schedule this block for deletion
+            if (!hasParentSource) {
+                blocksToRemove.push({ x: w.x, y: w.y, z: w.z });
+                return;
+            }
+        }
+
+        if (w.y - 1 < 0) return;
+
         if (blockBelow === BLOCK.AIR) {
             let downLvl = w.source ? 4 : w.lvl; 
             newBlocksToPlace.push({ x: w.x, y: w.y - 1, z: w.z, lvl: downLvl });
-        } 
-        else {
+        } else {
             let spreadLvl = w.lvl - 1;
             if (spreadLvl > 0) {
                 let neighbors = [
-                    { x: w.x + 1, y: w.y, z: w.z },
-                    { x: w.x - 1, y: w.y, z: w.z },
-                    { x: w.x, y: w.y, z: w.z + 1 },
-                    { x: w.x, y: w.y, z: w.z - 1 }
+                    { x: w.x + 1, y: w.y, z: w.z }, { x: w.x - 1, y: w.y, z: w.z },
+                    { x: w.x, y: w.y, z: w.z + 1 }, { x: w.x, y: w.y, z: w.z - 1 }
                 ];
                 neighbors.forEach(n => {
                     let targetRawBlock = getBlock(n.x, n.y, n.z);
                     let targetWaterLvl = checkBlock(n.x, n.y, n.z);
 
-                    // CRITICAL FIX: Only spread if the block is AIR, or if it is already water but has lower pressure
                     if (targetRawBlock === BLOCK.AIR || (typeof targetRawBlock === "string" && targetRawBlock.startsWith(BLOCK.WATER + "_F_") && targetWaterLvl < spreadLvl)) {
                         newBlocksToPlace.push({ x: n.x, y: n.y, z: n.z, lvl: spreadLvl });
                     }
@@ -1415,18 +1431,25 @@ function tick3DWaterPhysics() {
         }
     });
 
+    // Clean up broken/orphaned water channels
+    blocksToRemove.forEach(b => {
+        let cx = Math.floor(b.x / CHUNK_SIZE); let cz = Math.floor(b.z / CHUNK_SIZE);
+        let lx = b.x - cx * CHUNK_SIZE; let lz = b.z - cz * CHUNK_SIZE;
+        setBlock(cx, cz, lx, b.y, lz, BLOCK.AIR);
+        chunksToRebuild.add(chunkKey(cx, cz));
+    });
+
+    // Place freshly generated flows
     newBlocksToPlace.forEach(nb => {
-        let cx = Math.floor(nb.x / CHUNK_SIZE);
-        let cz = Math.floor(nb.z / CHUNK_SIZE);
-        let lx = nb.x - cx * CHUNK_SIZE;
-        let lz = nb.z - cz * CHUNK_SIZE;
+        if (nb.y < 0) return;
+        let cx = Math.floor(nb.x / CHUNK_SIZE); let cz = Math.floor(nb.z / CHUNK_SIZE);
+        let lx = nb.x - cx * CHUNK_SIZE; let lz = nb.z - cz * CHUNK_SIZE;
         
         let existingRaw = getBlock(nb.x, nb.y, nb.z);
         let existingLvl = checkBlock(nb.x, nb.y, nb.z);
         
-        // Double check to make sure we don't accidentally stomp a solid block during application
         if (existingRaw === BLOCK.AIR || (typeof existingRaw === "string" && existingRaw.startsWith(BLOCK.WATER + "_F_") && existingLvl < nb.lvl)) {
-            let valueToStore = nb.lvl === 4 ? BLOCK.WATER : BLOCK.WATER + "_F_" + nb.lvl;
+            let valueToStore = BLOCK.WATER + "_F_" + nb.lvl;
             setBlock(cx, cz, lx, nb.y, lz, valueToStore);
             chunksToRebuild.add(chunkKey(cx, cz));
         }
@@ -1440,7 +1463,9 @@ function tick3DWaterPhysics() {
 
     activeWaterBlocks = null;
     newBlocksToPlace = null;
+    blocksToRemove = null;
 }
+
 
 // ---------- PLAYER ----------
 
