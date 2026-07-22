@@ -1246,11 +1246,9 @@ continue;
 
 
 
-let mesh=
-new THREE.Mesh(
-cubeGeo,
-materials[c.blocks[k]]
-);
+let blockValue = c.blocks[k];
+let materialKey = typeof blockValue === "string" ? parseInt(blockValue.split("_")[0]) : blockValue;
+let mesh = new THREE.Mesh(cubeGeo, materials[materialKey]);
 
 
 
@@ -1438,49 +1436,88 @@ delete chunks[k];
 
 function tick3DWaterPhysics() {
     let activeWaterBlocks = [];
+    
+    // 1. Gather current water block snapshots across all loaded chunks
     for (let ck in chunks) {
         let chunk = chunks[ck];
         for (let bk in chunk.blocks) {
-            if (chunk.blocks[bk] === BLOCK.WATER) {
+            let val = chunk.blocks[bk];
+            let isWater = val === BLOCK.WATER;
+            let isStringWater = typeof val === "string" && val.startsWith(BLOCK.WATER + "_");
+            
+            if (isWater || isStringWater) {
                 let localPos = bk.split(",").map(Number);
                 let wx = chunk.cx * CHUNK_SIZE + localPos[0];
                 let wz = chunk.cz * CHUNK_SIZE + localPos[2];
-                activeWaterBlocks.push({ x: wx, y: localPos[1], z: wz });
+                let currentLvl = isWater ? 4 : parseInt(val.split("_")[1]);
+                activeWaterBlocks.push({ x: wx, y: localPos[1], z: wz, lvl: currentLvl });
             }
         }
     }
+
     let newBlocksToPlace = [];
     let chunksToRebuild = new Set();
+
+    // Helper to safely fetch block states out of your dynamic string grids
+    function checkBlock(x, y, z) {
+        let b = getBlock(x, y, z);
+        if (b === BLOCK.WATER) return 4;
+        if (typeof b === "string" && b.startsWith(BLOCK.WATER + "_")) return parseInt(b.split("_")[1]);
+        return b; // Returns BLOCK.AIR (0) or solid block IDs
+    }
+
+    // 2. Calculate smooth horizontal pressure drops
     activeWaterBlocks.forEach(w => {
-        if (getBlock(w.x, w.y - 1, w.z) === BLOCK.AIR) {
-            newBlocksToPlace.push({ x: w.x, y: w.y - 1, z: w.z });
-        } else {
-            let neighbors = [
-                { x: w.x + 1, y: w.y, z: w.z },
-                { x: w.x - 1, y: w.y, z: w.z },
-                { x: w.x, y: w.y, z: w.z + 1 },
-                { x: w.x, y: w.y, z: w.z - 1 }
-            ];
-            neighbors.forEach(n => {
-                if (getBlock(n.x, n.y, n.z) === BLOCK.AIR) {
-                    newBlocksToPlace.push({ x: n.x, y: n.y, z: n.z });
-                }
-            });
+        let blockBelow = checkBlock(w.x, w.y - 1, w.z);
+        
+        // A. Gravity Drop: If air is below, fall straight down with maximum weight
+        if (blockBelow === BLOCK.AIR) {
+            newBlocksToPlace.push({ x: w.x, y: w.y - 1, z: w.z, lvl: 4 });
+        } 
+        // B. Side Spread: If floor is solid or water, spread out until level hits 0
+        else {
+            let spreadLvl = w.lvl - 1;
+            if (spreadLvl > 0) {
+                let neighbors = [
+                    { x: w.x + 1, y: w.y, z: w.z },
+                    { x: w.x - 1, y: w.y, z: w.z },
+                    { x: w.x, y: w.y, z: w.z + 1 },
+                    { x: w.x, y: w.y, z: w.z - 1 }
+                ];
+                neighbors.forEach(n => {
+                    let targetBlock = checkBlock(n.x, n.y, n.z);
+                    // Only flow into empty air, or overwrite weaker water if ours is stronger
+                    if (targetBlock === BLOCK.AIR || (targetBlock > 0 && targetBlock < spreadLvl)) {
+                        newBlocksToPlace.push({ x: n.x, y: n.y, z: n.z, lvl: spreadLvl });
+                    }
+                });
+            }
         }
     });
+
+    // 3. Commit fresh updates directly into chunk storage arrays
     newBlocksToPlace.forEach(nb => {
         let cx = Math.floor(nb.x / CHUNK_SIZE);
         let cz = Math.floor(nb.z / CHUNK_SIZE);
         let lx = nb.x - cx * CHUNK_SIZE;
         let lz = nb.z - cz * CHUNK_SIZE;
-        setBlock(cx, cz, lx, nb.y, lz, BLOCK.WATER);
-        chunksToRebuild.add(chunkKey(cx, cz));
+        
+        let existing = checkBlock(nb.x, nb.y, nb.z);
+        if (existing === BLOCK.AIR || existing < nb.lvl) {
+            let valueToStore = nb.lvl === 4 ? BLOCK.WATER : BLOCK.WATER + "_" + nb.lvl;
+            setBlock(cx, cz, lx, nb.y, lz, valueToStore);
+            chunksToRebuild.add(chunkKey(cx, cz));
+        }
     });
+
+    // 4. Force a clean mesh rebuild frame pass
     chunksToRebuild.forEach(ckey => {
         let p = ckey.split(",").map(Number);
         rebuildChunk(p[0], p[1]);
         triggerAutosave();
     });
+
+    // 5. Completely clear array buffer memory frames to keep rendering lag-free
     activeWaterBlocks = null;
     newBlocksToPlace = null;
 }
