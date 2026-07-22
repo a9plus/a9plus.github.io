@@ -159,7 +159,7 @@ text-shadow:0 0 5px black;
 <div id="hotbar"></div>
 
 <p id="musixIN"></p>
-<div id="coordOverlay" style="position: absolute; top: 45px; left: 15px; background: rgba(0, 0, 0, 0.5); padding: 4px; color: #ffffff; font-family: monospace; font-size: 14px; pointer-events: none; z-index: 100; line-height: 1.4;">
+<div id="coordOverlay" style="position: absolute; top: 75px; left: 15px; background: rgba(0, 0, 0, 0.5); padding: 4px; color: #ffffff; font-family: monospace; font-size: 14px; pointer-events: none; z-index: 100; line-height: 1.4;">
     XYZ: 0.00 / 0.00 / 0.00<br>
     Chunk: 0, 0
 </div>
@@ -2007,7 +2007,10 @@ scene,
 camera
 );
 
-document.getElementById("coordOverlay").innerHTML = `XYZ: ${player.x.toFixed(3)} / ${player.y.toFixed(5)} / ${player.z.toFixed(3)}<br>Chunk: ${cx}, ${cz}`;
+let cx = Math.floor(player.x / CHUNK_SIZE);
+let cz = Math.floor(player.z / CHUNK_SIZE);
+document.getElementById("coordOverlay").innerHTML = `XYZ: ${player.x.toFixed(2)} / ${player.y.toFixed(2)} / ${player.z.toFixed(2)}<br>Chunk: ${cx}, ${cz}`;
+
 
 
 requestAnimationFrame(loop);
