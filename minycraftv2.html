@@ -1615,14 +1615,13 @@ pitch
 
 
 function solid(x,y,z){
-
-return getBlock(
-Math.floor(x),
-Math.floor(y),
-Math.floor(z)
-)!=0;
-
+    let b = getBlock( Math.floor(x), Math.floor(y), Math.floor(z) );
+    if (b === 0) return false;
+    if (b === BLOCK.WATER || b === BLOCK.WATER_STATIC) return false;
+    if (typeof b === "string" && b.startsWith(BLOCK.WATER + "_F_")) return false;
+    return true;
 }
+
 
 
 
@@ -1669,100 +1668,36 @@ solid(x+r,y+h,z+r)
 
 
 function physics(){
+    let bAtPlayer = getBlock(Math.floor(player.x), Math.floor(player.y - 1), Math.floor(player.z));
+    let inWater = bAtPlayer === BLOCK.WATER || bAtPlayer === BLOCK.WATER_STATIC || (typeof bAtPlayer === "string" && bAtPlayer.startsWith(BLOCK.WATER + "_F_"));
 
+    if (inWater) {
+        player.vy -= .004;
+        player.ground = true; 
+    } else {
+        player.vy -= .012;
+    }
 
-player.vy-=.012;
-
-
-
-let ny=
-player.y+player.vy;
-
-
-
-
-
-if(player.vy<=0){
-
-
-
-if(
-collision(
-player.x,
-ny-1.8,
-player.z
-)
-){
-
-
-
-player.vy=0;
-
-player.ground=true;
-
-
-
-while(
-collision(
-player.x,
-player.y-1.8,
-player.z
-)
-){
-
-player.y+=.01;
-
+    let ny = player.y + player.vy;
+    if(player.vy <= 0){
+        if( collision( player.x, ny-1.8, player.z ) ){
+            player.vy = 0;
+            if (!inWater) player.ground = true;
+            while( collision( player.x, player.y-1.8, player.z ) ){
+                player.y += .01;
+            }
+        } else {
+            player.y = ny;
+            if (!inWater) player.ground = false;
+        }
+    } else {
+        if( !collision( player.x, ny, player.z ) ){
+            player.y = ny;
+        } else {
+            player.vy = 0;
+        }
+    }
 }
-
-
-
-}
-
-else{
-
-
-player.y=ny;
-
-player.ground=false;
-
-
-}
-
-
-
-}
-
-else{
-
-
-if(
-!collision(
-player.x,
-ny,
-player.z
-)
-){
-
-player.y=ny;
-
-}
-
-else{
-
-player.vy=0;
-
-}
-
-
-
-}
-
-
-}
-
-
-
-
 
 
 
