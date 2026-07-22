@@ -1399,6 +1399,58 @@ delete chunks[k];
 
 }
 
+// ---------- WATER STUFF IDK -----------
+
+function tick3DWaterPhysics() {
+    let activeWaterBlocks = [];
+    for (let ck in chunks) {
+        let chunk = chunks[ck];
+        for (let bk in chunk.blocks) {
+            if (chunk.blocks[bk] === BLOCK.WATER) {
+                let localPos = bk.split(",").map(Number);
+                let wx = chunk.cx * CHUNK_SIZE + localPos[0];
+                let wz = chunk.cz * CHUNK_SIZE + localPos[2];
+                activeWaterBlocks.push({ x: wx, y: localPos[1], z: wz });
+            }
+        }
+    }
+    let newBlocksToPlace = [];
+    let chunksToRebuild = new Set();
+    activeWaterBlocks.forEach(w => {
+        if (getBlock(w.x, w.y - 1, w.z) === BLOCK.AIR) {
+            newBlocksToPlace.push({ x: w.x, y: w.y - 1, z: w.z });
+        } else {
+            let neighbors = [
+                { x: w.x + 1, y: w.y, z: w.z },
+                { x: w.x - 1, y: w.y, z: w.z },
+                { x: w.x, y: w.y, z: w.z + 1 },
+                { x: w.x, y: w.y, z: w.z - 1 }
+            ];
+            neighbors.forEach(n => {
+                if (getBlock(n.x, n.y, n.z) === BLOCK.AIR) {
+                    newBlocksToPlace.push({ x: n.x, y: n.y, z: n.z });
+                }
+            });
+        }
+    });
+    newBlocksToPlace.forEach(nb => {
+        let cx = Math.floor(nb.x / CHUNK_SIZE);
+        let cz = Math.floor(nb.z / CHUNK_SIZE);
+        let lx = nb.x - cx * CHUNK_SIZE;
+        let lz = nb.z - cz * CHUNK_SIZE;
+        setBlock(cx, cz, lx, nb.y, lz, BLOCK.WATER);
+        chunksToRebuild.add(chunkKey(cx, cz));
+    });
+    chunksToRebuild.forEach(ckey => {
+        let p = ckey.split(",").map(Number);
+        rebuildChunk(p[0], p[1]);
+        triggerAutosave();
+    });
+    activeWaterBlocks = null;
+    newBlocksToPlace = null;
+}
+
+  
 // ---------- PLAYER ----------
 
 
@@ -2019,6 +2071,7 @@ player.z
 );
 
 
+setInterval(tick3DWaterPhysics, 300);
 
 loop();
 
