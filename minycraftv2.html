@@ -3,7 +3,7 @@
 <!-- ok ignore all the whitespace I was copying from various repos and stack so bear with me -->
 <html>
 <head>
-<title>MinyCraft v0.49 (commit #)</title>
+<title>MinyCraft v0.50 (commit #)</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Tiny5&display=swap" rel="stylesheet">
@@ -645,6 +645,11 @@ x,y,1,1
 
 
 
+// MATERIALS
+
+
+const materials={};
+
 let devTex = textureCanvas(ctx => {
     for(let x=0; x<16; x++) {
         for(let y=0; y<16; y++) {
@@ -655,14 +660,6 @@ let devTex = textureCanvas(ctx => {
     }
 });
 materials[BLOCK.DEV] = new THREE.MeshBasicMaterial({ map: devTex });
-
-
-
-// MATERIALS
-
-
-const materials={};
-
 
 materials[BLOCK.GRASS]=
 new THREE.MeshLambertMaterial({
