@@ -3,7 +3,7 @@
 <!-- ok ignore all the whitespace I was copying from various repos and stack so bear with me -->
 <html>
 <head>
-<title>MinyCraft v0.46 (commit #)</title>
+<title>MinyCraft v0.47 (commit #)</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Tiny5&display=swap" rel="stylesheet">
@@ -310,8 +310,7 @@ renderer.shadowMap.enabled=false;
 
 // BLOCKS
 
-const BLOCK={ AIR:0, GRASS:1, DIRT:2, STONE:3, SAND:4, WOOD:5, LEAF:6, GLASS:7, GLOW:8, BRICK:9, WATER:10, WATER_STATIC:11 };
-
+const BLOCK={ AIR:0, GRASS:1, DIRT:2, STONE:3, SAND:4, WOOD:5, LEAF:6, GLASS:7, GLOW:8, BRICK:9, WATER:10, WATER_STATIC:11, DEV:13 };
 
 
 let selectedBlock=BLOCK.GRASS;
@@ -646,6 +645,16 @@ x,y,1,1
 
 
 
+let devTex = textureCanvas(ctx => {
+    for(let x=0; x<16; x++) {
+        for(let y=0; y<16; y++) {
+            let pattern = (x % 4 == 0 || y % 4 == 0);
+            ctx.fillStyle = pattern ? "#00ffcc" : "#112211";
+            ctx.fillRect(x, y, 1, 1);
+        }
+    }
+});
+materials[BLOCK.DEV] = new THREE.MeshBasicMaterial({ map: devTex });
 
 
 
@@ -710,6 +719,11 @@ color:0xffff55
 materials[BLOCK.BRICK]=
 new THREE.MeshLambertMaterial({
 map:brickTex
+});
+
+materials[BLOCK.DEV]=
+new THREE.MeshLambertMaterial({
+map:devTex
 });
 
 
@@ -1148,12 +1162,10 @@ let isWaterType = currentB == BLOCK.WATER || currentB == BLOCK.WATER_STATIC || (
 if(!isWaterType && !visibleBlock( wx, p[1], wz )) continue;
 
 
-
-
-
 let blockValue = c.blocks[k];
 let materialKey = typeof blockValue === "string" ? parseInt(blockValue.split("_")[0]) : blockValue;
 let mesh = new THREE.Mesh(cubeGeo, materials[materialKey]);
+
 
 
 
@@ -1520,6 +1532,11 @@ player.ground=false;
 });
 
 
+window.addEventListener("keydown", (e) => {
+    if (e.code === "Semicolon") {
+        selectedBlock = BLOCK.DEV;
+    }
+});
 
 
 
@@ -1882,20 +1899,52 @@ hit.object.userData.pos;
     triggerAutosave(); 
   } 
   
-  if(e.button==2){ 
-    let n = hit.face.normal; 
-    let x = p[0]+n.x; 
-    let y = p[1]+n.y; 
-    let z = p[2]+n.z; 
-    let cx = Math.floor( x/CHUNK_SIZE ); 
-    let cz = Math.floor( z/CHUNK_SIZE ); 
+if(e.button==2){
+    let p = hit.object.userData.pos;
+    if (p) {
+        let tcx = Math.floor(p[0] / CHUNK_SIZE);
+        let tcz = Math.floor(p[2] / CHUNK_SIZE);
+        let tlx = p[0] - tcx * CHUNK_SIZE;
+        let tlz = p[2] - tcz * CHUNK_SIZE;
+        let c = chunks[chunkKey(tcx, tcz)];
+        if (c) {
+            let b = c.blocks[blockKey(tlx, p[1], tlz)];
+            if (typeof b === "string" && b.startsWith(BLOCK.DEV + "_")) {
+                e.preventDefault();
+                e.stopPropagation();
+                try {
+                    let decodedCode = atob(b.split("_")[1]);
+                    eval(decodedCode);
+                } catch (err) {
+                    console.error("Dev Block Error:", err);
+                }
+                return;
+            }
+        }
+    }
 
-    setBlock( cx, cz, x-cx*CHUNK_SIZE, y, z-cz*CHUNK_SIZE, selectedBlock ); 
-    rebuildChunk( cx, cz ); 
+    let n = hit.face.normal;
+    let x = p[0]+n.x;
+    let y = p[1]+n.y;
+    let z = p[2]+n.z;
+    let cx = Math.floor( x/CHUNK_SIZE );
+    let cz = Math.floor( z/CHUNK_SIZE );
 
-    triggerAutosave(); 
-  } 
-});
+    if (selectedBlock === BLOCK.DEV) {
+        let code = prompt("Enter JavaScript to execute on right-click:");
+        if (code) {
+            let valueToStore = BLOCK.DEV + "_" + btoa(code);
+            setBlock(cx, cz, x-cx*CHUNK_SIZE, y, z-cz*CHUNK_SIZE, valueToStore);
+            rebuildChunk(cx, cz);
+            triggerAutosave();
+        }
+    } else {
+        setBlock(cx, cz, x-cx*CHUNK_SIZE, y, z-cz*CHUNK_SIZE, selectedBlock);
+        rebuildChunk(cx, cz);
+        triggerAutosave();
+    }
+}
+
 
 
 
