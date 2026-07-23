@@ -713,20 +713,9 @@ map:brickTex
 });
 
 
-materials[BLOCK.WATER]=
-new THREE.MeshPhongMaterial({
-color:0x2060ff,
-transparent:true,
-opacity:.5
-});
+materials[BLOCK.WATER] = new THREE.MeshPhongMaterial({ color:0x2060ff, transparent:true, opacity:.5, depthWrite: true });
+materials[BLOCK.WATER_STATIC] = new THREE.MeshPhongMaterial({ color:0x1030ff, transparent:true, opacity:.3, depthWrite: true });
 
-
-materials[BLOCK.WATER_STATIC] =
-new THREE.MeshPhongMaterial({
-color:0x1030ff,
-transparent:true,
-opacity:.3
-});
 
 
 
@@ -1087,26 +1076,17 @@ function generateChunk(cx,cz){
 
 
 function visibleBlock(x,y,z){
-
-
-return(
-
-getBlock(x+1,y,z)==0 ||
-
-getBlock(x-1,y,z)==0 ||
-
-getBlock(x,y+1,z)==0 ||
-
-getBlock(x,y-1,z)==0 ||
-
-getBlock(x,y,z+1)==0 ||
-
-getBlock(x,y,z-1)==0
-
-);
-
-
+    let isTransparent = (bx, by, bz) => {
+        let b = getBlock(bx, by, bz);
+        return b == 0 || b == BLOCK.WATER || b == BLOCK.WATER_STATIC || (typeof b === "string" && b.startsWith(BLOCK.WATER + "_F_"));
+    };
+    return(
+        isTransparent(x+1,y,z) || isTransparent(x-1,y,z) ||
+        isTransparent(x,y+1,z) || isTransparent(x,y-1,z) ||
+        isTransparent(x,y,z+1) || isTransparent(x,y,z-1)
+    );
 }
+
 
 
 
@@ -1163,12 +1143,9 @@ cz*CHUNK_SIZE+p[2];
 
 
 
-if(!visibleBlock(
-wx,
-p[1],
-wz
-))
-continue;
+let currentB = c.blocks[k];
+let isWaterType = currentB == BLOCK.WATER || currentB == BLOCK.WATER_STATIC || (typeof currentB === "string" && currentB.startsWith(BLOCK.WATER + "_F_"));
+if(!isWaterType && !visibleBlock( wx, p[1], wz )) continue;
 
 
 
