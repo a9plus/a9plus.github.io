@@ -3,7 +3,7 @@
 <!-- ok ignore all the whitespace I was copying from various repos and stack so bear with me -->
 <html>
 <head>
-<title>MinyCraft v0.51 (commit #)</title>
+<title>MinyCraft v0.53 (commit #)</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Tiny5&display=swap" rel="stylesheet">
@@ -822,9 +822,11 @@ alphaTest:.2
 
 materials[BLOCK.GLASS]=
 new THREE.MeshPhongMaterial({
-color:0x99ddff,
+color:0xffffff,
 transparent:true,
-opacity:.45
+opacity:0.2,
+shininess:30,
+specular:0xffffff
 });
 
 
